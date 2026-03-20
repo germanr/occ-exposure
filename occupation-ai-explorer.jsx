@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import _ from "lodash";
 import OCCUPATIONS_RAW from "./src/occupations.json";
 import ALL_TASKS from "./src/tasks.json";
@@ -431,21 +431,91 @@ function QuizView({ onBack }) {
         ))}
       </div>
 
-      {picked && (
-        <div style={{ textAlign: "center", animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both", marginBottom: 48 }}>
-          <div style={{ fontSize: 20, fontWeight: 700, fontFamily: F.sans, marginBottom: 8, color: isCorrect ? "#276749" : "#C53030" }}>
-            {isCorrect ? "Correct!" : "Not quite!"}
+      {picked && (() => {
+        const winner = occ(answer);
+        const loser = occ(answer === "a" ? "b" : "a");
+        const winExp = exp(answer);
+        const loseExp = exp(answer === "a" ? "b" : "a");
+        const tasksA = ALL_TASKS[occA.soc] || [];
+        const tasksB = ALL_TASKS[occB.soc] || [];
+        const exA = occA.exposure || {};
+        const exB = occB.exposure || {};
+
+        const indexLabels = [
+          ["eloundou_beta", "AI + tools (Eloundou)"],
+          ["eloundou_alpha", "AI alone (Eloundou)"],
+          ["aei_augmentation", "AI as helper (Anthropic)"],
+          ["aei_automation", "AI as replacement (Anthropic)"],
+          ["felten", "AI–skill overlap (Felten)"],
+          ["genoe", "Generative AI (OECD)"],
+          ["sml", "Machine learning (Brynjolfsson)"],
+        ];
+
+        return (
+          <div style={{ animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both", marginBottom: 48 }}>
+            {/* Result banner */}
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, fontFamily: F.sans, marginBottom: 8, color: isCorrect ? "#276749" : "#C53030" }}>
+                {isCorrect ? "Correct!" : "Not quite!"}
+              </div>
+              <p style={{ fontSize: 14, color: C.textSec, maxWidth: 600, margin: "0 auto" }}>
+                <strong>{winner.title}</strong> ({fmtPct(winExp)}) is more exposed to AI than <strong>{loser.title}</strong> ({fmtPct(loseExp)}).
+              </p>
+            </div>
+
+            {/* Exposure comparison table */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px", marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 14, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Exposure indices compared</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px 16px", alignItems: "center" }}>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono }}>Index</div>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, textAlign: "right", minWidth: 80 }}>{occA.title.length > 20 ? occA.title.slice(0, 18) + "…" : occA.title}</div>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, textAlign: "right", minWidth: 80 }}>{occB.title.length > 20 ? occB.title.slice(0, 18) + "…" : occB.title}</div>
+                {indexLabels.map(([key, label]) => {
+                  const vA = exA[key], vB = exB[key];
+                  if (vA == null && vB == null) return null;
+                  const higherA = (vA ?? 0) >= (vB ?? 0);
+                  return (
+                    <React.Fragment key={key}>
+                      <div style={{ fontSize: 12, color: C.textSec }}>{label}</div>
+                      <div style={{ fontSize: 13, fontWeight: higherA ? 700 : 400, color: higherA ? "#276749" : C.text, textAlign: "right", fontFamily: F.mono }}>{vA != null ? fmtPct(vA) : "—"}</div>
+                      <div style={{ fontSize: 13, fontWeight: !higherA ? 700 : 400, color: !higherA ? "#276749" : C.text, textAlign: "right", fontFamily: F.mono }}>{vB != null ? fmtPct(vB) : "—"}</div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Side-by-side tasks */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+              {[["a", occA, tasksA], ["b", occB, tasksB]].map(([side, o, t]) => (
+                <div key={side} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F.sans, marginBottom: 4 }}>{o.title}</div>
+                  <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, marginBottom: 12 }}>{t.length} tasks · {fmtPct(exp(side))} exposure</div>
+                  {t.length > 0 ? (
+                    <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12, lineHeight: 1.65, color: C.textSec, maxHeight: 280, overflowY: "auto" }}>
+                      {t.map((task, i) => <li key={i} style={{ marginBottom: 4 }}>{task}</li>)}
+                    </ol>
+                  ) : (
+                    <p style={{ fontSize: 12, color: C.textTer, fontStyle: "italic" }}>No task statements available.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Insight + next button */}
+            <div style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: C.textSec, maxWidth: 600, margin: "0 auto 20px", lineHeight: 1.65 }}>
+                Read through the task lists above. Jobs with more information processing, writing, analysis, and data work tend to have higher AI exposure, while jobs involving physical tasks, hands-on care, or unpredictable environments tend to have lower exposure.
+              </p>
+              <button onClick={handleNext} style={{
+                padding: "10px 28px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 14,
+                fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg,
+                fontFamily: F.sans, letterSpacing: "0.3px",
+              }}>Next pair →</button>
+            </div>
           </div>
-          <p style={{ fontSize: 14, color: C.textSec, marginBottom: 20, maxWidth: 500, margin: "0 auto 20px" }}>
-            <strong>{occ(answer).title}</strong> has {fmtPct(exp(answer))} exposure vs. {fmtPct(exp(answer === "a" ? "b" : "a"))} for {occ(answer === "a" ? "b" : "a").title} (Eloundou et al., AI + software tools).
-          </p>
-          <button onClick={handleNext} style={{
-            padding: "10px 28px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 14,
-            fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg,
-            fontFamily: F.sans, letterSpacing: "0.3px",
-          }}>Next pair →</button>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
