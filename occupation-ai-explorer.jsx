@@ -310,6 +310,147 @@ function SortOption({ label, active, onClick }) {
 }
 
 // ─────────────────────────────────────
+// Quiz Game
+// ─────────────────────────────────────
+const QUIZ_POOL = OCCUPATIONS.filter(o => {
+  const ex = o.exposure || {};
+  return (ex.eloundou_beta != null) && o.employment != null;
+});
+
+function getExposure(occ) {
+  const ex = occ.exposure || {};
+  return ex.eloundou_beta ?? null;
+}
+
+function pickPair(prev) {
+  const pool = QUIZ_POOL;
+  let a, b, attempts = 0;
+  do {
+    a = pool[Math.floor(Math.random() * pool.length)];
+    b = pool[Math.floor(Math.random() * pool.length)];
+    attempts++;
+  } while ((a.soc === b.soc || Math.abs(getExposure(a) - getExposure(b)) < 0.03 || (prev && (a.soc === prev.soc || b.soc === prev.soc))) && attempts < 100);
+  return [a, b];
+}
+
+function QuizView({ onBack }) {
+  const [[occA, occB], setPair] = useState(() => pickPair(null));
+  const [picked, setPicked] = useState(null); // "a" | "b" | null
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [correct, setCorrect] = useState(0);
+
+  const expA = getExposure(occA);
+  const expB = getExposure(occB);
+  const answer = expA >= expB ? "a" : "b";
+  const isCorrect = picked === answer;
+
+  const handlePick = (side) => {
+    if (picked) return;
+    setPicked(side);
+    setTotal(t => t + 1);
+    if (side === answer) {
+      setStreak(s => { const n = s + 1; setBest(b => Math.max(b, n)); return n; });
+      setCorrect(c => c + 1);
+    } else {
+      setStreak(0);
+    }
+  };
+
+  const handleNext = () => {
+    setPicked(null);
+    setPair(pickPair(occA));
+  };
+
+  const cardStyle = (side) => {
+    const isPicked = picked === side;
+    const isAnswer = side === answer;
+    let border = C.border;
+    if (picked) {
+      if (isAnswer) border = "#276749";
+      else if (isPicked && !isAnswer) border = "#C53030";
+    }
+    return {
+      flex: 1, background: C.surface, border: `2px solid ${border}`,
+      borderRadius: 8, cursor: picked ? "default" : "pointer", overflow: "hidden",
+      transition: "all 0.2s ease", transform: !picked && isPicked ? "none" : "none",
+      boxShadow: picked && isAnswer ? "0 0 0 2px #27674933" : "none",
+      maxWidth: 400,
+    };
+  };
+
+  const occ = (side) => side === "a" ? occA : occB;
+  const exp = (side) => side === "a" ? expA : expB;
+
+  return (
+    <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 32px" }}>
+      <div style={{ padding: "48px 0 24px", animation: "fadeUp 0.4s cubic-bezier(.22,1,.36,1) both" }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: C.textSec, fontFamily: F.sans, padding: 0, marginBottom: 20 }}>
+          ← Back to explorer
+        </button>
+        <h1 style={{ fontSize: 36, fontWeight: 700, fontFamily: F.sans, letterSpacing: "-0.03em", margin: "0 0 8px", lineHeight: 1.1 }}>
+          Which job is more exposed to AI?
+        </h1>
+        <p style={{ fontSize: 14, color: C.textSec, margin: "0 0 24px", lineHeight: 1.6 }}>
+          Two occupations, one question. Pick the one you think has higher AI exposure.
+        </p>
+        <div style={{ display: "flex", gap: 16, fontSize: 13, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.3px", marginBottom: 32 }}>
+          <span>Streak: <strong style={{ color: C.text }}>{streak}</strong></span>
+          <span>Best: <strong style={{ color: C.text }}>{best}</strong></span>
+          <span>Score: <strong style={{ color: C.text }}>{correct}/{total}</strong></span>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 20, marginBottom: 32, animation: picked ? "none" : "fadeUp 0.35s cubic-bezier(.22,1,.36,1) both" }}>
+        {["a", "b"].map(side => (
+          <div key={side} style={cardStyle(side)} onClick={() => handlePick(side)}
+            onMouseEnter={e => { if (!picked) e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = picked ? e.currentTarget.style.boxShadow : "0 6px 20px rgba(0,0,0,0.1)"; }}
+            onMouseLeave={e => { if (!picked) e.currentTarget.style.transform = "none"; if (!picked) e.currentTarget.style.boxShadow = "none"; }}
+          >
+            <CatImage soc={occ(side).soc} height={160} />
+            <div style={{ padding: "16px 20px 20px" }}>
+              <div style={{ fontSize: 10, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.5px", marginBottom: 4 }}>{occ(side).soc.replace(".00", "")}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, fontFamily: F.sans, lineHeight: 1.25, color: C.text, marginBottom: 8 }}>{occ(side).title}</div>
+              <div style={{ fontSize: 13, color: C.textSec, fontFamily: F.sans }}>
+                {fmt(occ(side).employment)} workers · {fmtWage(occ(side).meanWage)}
+              </div>
+              {picked && (
+                <div style={{ marginTop: 16, animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: C.textSec }}>AI exposure</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, fontFamily: F.mono, color: side === answer ? "#276749" : C.text }}>{fmtPct(exp(side))}</span>
+                  </div>
+                  <div style={{ height: 8, background: C.accentLight, borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${(exp(side) ?? 0) * 100}%`, background: side === answer ? "#276749" : C.barFill, borderRadius: 4, transition: "width 0.6s cubic-bezier(.22,1,.36,1)" }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {picked && (
+        <div style={{ textAlign: "center", animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both", marginBottom: 48 }}>
+          <div style={{ fontSize: 20, fontWeight: 700, fontFamily: F.sans, marginBottom: 8, color: isCorrect ? "#276749" : "#C53030" }}>
+            {isCorrect ? "Correct!" : "Not quite!"}
+          </div>
+          <p style={{ fontSize: 14, color: C.textSec, marginBottom: 20, maxWidth: 500, margin: "0 auto 20px" }}>
+            <strong>{occ(answer).title}</strong> has {fmtPct(exp(answer))} exposure vs. {fmtPct(exp(answer === "a" ? "b" : "a"))} for {occ(answer === "a" ? "b" : "a").title} (Eloundou et al., AI + software tools).
+          </p>
+          <button onClick={handleNext} style={{
+            padding: "10px 28px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 14,
+            fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg,
+            fontFamily: F.sans, letterSpacing: "0.3px",
+          }}>Next pair →</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────
 // Main App
 // ─────────────────────────────────────
 export default function App() {
@@ -527,6 +668,30 @@ export default function App() {
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // QUIZ VIEW
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  if (view === "quiz") {
+    return (
+      <div style={shell}>
+        <style>{GCSS}</style>
+        <header style={{
+          background: `${C.bg}DD`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100,
+        }}>
+          <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
+            <button onClick={() => { setView("grid"); }} style={{
+              padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
+              fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
+            }}>← Explorer</button>
+          </div>
+        </header>
+        <QuizView onBack={() => { setView("grid"); }} />
+      </div>
+    );
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // GRID VIEW
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   return (
@@ -586,6 +751,11 @@ export default function App() {
             fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
             fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
           }}>Random occupation</button>
+          <button onClick={() => { setView("quiz"); window.scrollTo({ top: 0 }); }} style={{
+            padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
+            fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
+            fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
+          }}>Quiz me</button>
         </div>
 
         {/* Exposure to AI explainer */}
