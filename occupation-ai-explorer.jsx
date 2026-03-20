@@ -9,6 +9,8 @@ const OCCUPATIONS = OCCUPATIONS_RAW.map(o => ({
   employmentShare: o.employmentShare || 0,
 }));
 
+const TOTAL_TASKS = Object.values(ALL_TASKS).reduce((sum, arr) => sum + arr.length, 0);
+
 // ─── Formatters ───
 const fmt = (n) => {
   if (n == null) return "—";
@@ -251,11 +253,14 @@ function Bar({ value, max, color, label, sublabel }) {
 }
 
 // ─── Grid Tile ───
-function Tile({ occ, onClick, highlighted, idx }) {
+function Tile({ occ, onClick, highlighted, idx, search }) {
   const [h, setH] = useState(false);
   const isHl = highlighted === occ.soc;
   const ex = occ.exposure || {};
   const mainExposure = ex.eloundou_beta ?? ex.genoe ?? ex.felten ?? null;
+  const q = search ? search.toLowerCase() : "";
+  const nameMatches = !q || occ.title.toLowerCase().includes(q);
+  const matchingAlt = !nameMatches && q && occ.altTitles ? occ.altTitles.find(a => a.toLowerCase().includes(q)) : null;
   return (
     <div
       onClick={onClick}
@@ -282,6 +287,7 @@ function Tile({ occ, onClick, highlighted, idx }) {
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           minHeight: 38,
         }}>{occ.title}</div>
+        {matchingAlt && <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.sans, marginBottom: 2, fontStyle: "italic" }}>also known as: {matchingAlt}</div>}
         <div style={{ fontSize: 12, color: C.textSec, fontFamily: F.sans, marginBottom: 6 }}>
           {fmt(occ.employment)} workers{occ.meanWage != null ? ` · ${fmtWage(occ.meanWage)}` : ""}
         </div>
@@ -315,13 +321,14 @@ export default function App() {
   const [shuffleHl, setShuffleHl] = useState(null);
   const [fadeIn, setFadeIn] = useState(true);
   const [showExplainer, setShowExplainer] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const perPage = 36;
 
   const filtered = useMemo(() => {
     let list = [...OCCUPATIONS];
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(o => o.title.toLowerCase().includes(q) || o.soc.includes(q));
+      list = list.filter(o => o.title.toLowerCase().includes(q) || o.soc.includes(q) || (o.altTitles && o.altTitles.some(a => a.toLowerCase().includes(q))));
     }
     if (sortBy === "alpha") return _.sortBy(list, "title");
     if (sortBy === "soc") return _.sortBy(list, "soc");
@@ -544,28 +551,28 @@ export default function App() {
         {/* Hero */}
         <div style={{ padding: "72px 0 56px", maxWidth: 640, animation: "fadeUp 0.5s cubic-bezier(.22,1,.36,1) both" }}>
           <h1 className="hero-title" style={{ fontSize: 48, fontWeight: 700, fontFamily: F.sans, letterSpacing: "-0.04em", margin: "0 0 16px", lineHeight: 1.08 }}>
-            Which jobs will<br />AI transform?
+            Which jobs will AI transform?
           </h1>
           <p style={{ fontSize: 16, lineHeight: 1.7, color: C.textSec, margin: "0 0 32px", maxWidth: 520 }}>
-            Browse {OCCUPATIONS.length.toLocaleString()} occupations with real task descriptions from O*NET. See what workers actually do and how exposed each role is to AI, according to multiple research teams.
+            Browse hundreds of occupations. Learn what workers actually do and how exposed each role is to AI, according to state-of-the-art research.
           </p>
           <div style={{ display: "flex", gap: 20, fontSize: 13, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.3px" }}>
             <span><strong style={{ color: C.text, fontWeight: 600 }}>{OCCUPATIONS.length}</strong> occupations</span>
             <span><strong style={{ color: C.text, fontWeight: 600 }}>8</strong> exposure indices</span>
-            <span><strong style={{ color: C.text, fontWeight: 600 }}>O*NET</strong> task data</span>
+            <span><strong style={{ color: C.text, fontWeight: 600 }}>{TOTAL_TASKS.toLocaleString()}</strong> job tasks</span>
           </div>
         </div>
 
         {/* Controls */}
         <div className="controls-row" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 20, animation: "fadeUp 0.4s cubic-bezier(.22,1,.36,1) 0.05s both" }}>
-          <input placeholder="Search occupations…" value={search} onChange={e => setSearch(e.target.value)}
+          <input placeholder="Search occupations…" value={search} onChange={e => { setSearch(e.target.value); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }}
             style={{ padding: "8px 14px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, width: 240, outline: "none", fontFamily: F.sans, background: C.surface, transition: "border-color 0.15s" }}
             onFocus={e => { e.target.style.borderColor = C.text; }} onBlur={e => { e.target.style.borderColor = C.border; }}
           />
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: 8 }}>
             <span style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.5px", textTransform: "uppercase" }}>Sort</span>
             {[["employment", "Employment"], ["wage", "Wage"], ["alpha", "A–Z"], ["exposure", "Exposure"]].map(([k, l]) => (
-              <SortOption key={k} label={l} active={sortBy === k} onClick={() => setSortBy(k)} />
+              <SortOption key={k} label={l} active={sortBy === k} onClick={() => { setSortBy(k); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }} />
             ))}
           </div>
           <div style={{ flex: 1 }} />
@@ -630,7 +637,7 @@ export default function App() {
 
         <div className="grid-main" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
           {paged.map((occ, i) => (
-            <Tile key={occ.soc} occ={occ} idx={i} onClick={() => openOcc(occ.soc)} highlighted={shuffleHl} />
+            <Tile key={occ.soc} occ={occ} idx={i} onClick={() => openOcc(occ.soc)} highlighted={shuffleHl} search={search} />
           ))}
         </div>
 
@@ -657,6 +664,56 @@ export default function App() {
           </div>
         )}
 
+        {/* About section */}
+        {showAbout && (
+          <div style={{
+            background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
+            padding: "28px", marginTop: 32,
+            animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, fontFamily: F.sans, margin: 0 }}>About this tool</h2>
+              <button onClick={() => setShowAbout(false)} style={{ background: "none", border: "none", fontSize: 18, cursor: "pointer", color: C.textTer, padding: "0 4px" }}>×</button>
+            </div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: C.textSec, margin: "0 0 20px", maxWidth: 700 }}>
+              This tool brings together data from several sources to help you explore how AI intersects with different occupations. All exposure values are normalized to a 0–100% scale for comparability.
+            </p>
+
+            <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 12, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Data sources</div>
+            <div style={{ display: "grid", gap: 12, marginBottom: 20 }}>
+              {[
+                { title: "O*NET Task Statements", desc: "Core task statements for each occupation from the O*NET database (U.S. Department of Labor / Employment and Training Administration). 13,417 tasks across 878 occupations.", link: "https://www.onetonline.org/", license: "CC BY 4.0" },
+                { title: "BLS Occupational Employment & Wage Statistics", desc: "Employment counts and annual mean wages from the Bureau of Labor Statistics, May 2023 National Occupational Employment and Wage Estimates.", link: "https://www.bls.gov/oes/", license: "Public domain" },
+                { title: "Eloundou et al. (2023) — \"GPTs are GPTs\"", desc: "Share of tasks exposed to AI at three capability tiers: LLM alone (alpha), with complementary tools (beta), and with full system access (gamma). Covers 923 occupations.", link: "https://doi.org/10.1126/science.adj0998" },
+                { title: "Anthropic Economic Index (2025)", desc: "Analysis of millions of real AI conversations measuring how often AI is used for each occupation's tasks, distinguishing augmentation (AI as helper) from automation (AI as replacement). Covers 674 occupations.", link: "https://www.anthropic.com/research/the-anthropic-economic-index" },
+                { title: "Felten, Raj & Seamans (2023) — AIOE", desc: "Measures how much recent AI capability advances overlap with the abilities each job requires, using AI benchmark scores mapped to occupational skills.", link: "https://doi.org/10.2139/ssrn.4375268" },
+                { title: "Georgieff & Hyee (2024) — GENOE", desc: "Estimated share of tasks that generative AI could perform at 1-year, 5-year, and 10-year horizons, based on expert assessments. Developed at the OECD.", link: "https://doi.org/10.1787/f6c10404-en" },
+                { title: "Pizzinelli et al. (2023) — IMF", desc: "Extended the AIOE framework to account for complementarity — tasks where humans and AI work together, not just tasks AI could replace.", link: "https://www.imf.org/en/Publications/WP/Issues/2023/01/13/Labor-Market-Exposure-to-AI-Cross-country-Differences-and-Distributional-Implications-528101" },
+                { title: "Brynjolfsson, Mitchell & Rock (2018) — SML", desc: "An early measure of which tasks are suitable for machine learning, based on a rubric evaluating 18,000+ O*NET tasks. Predates the generative AI era.", link: "https://doi.org/10.1257/pandp.20181019" },
+              ].map(d => (
+                <a key={d.title} href={d.link} target="_blank" rel="noopener noreferrer" style={{
+                  padding: "14px 16px", background: C.bg, borderRadius: 6, border: `1px solid ${C.borderLight}`,
+                  textDecoration: "none", display: "block", transition: "border-color 0.15s",
+                }}
+                  onMouseEnter={e => e.currentTarget.style.borderColor = C.borderHover}
+                  onMouseLeave={e => e.currentTarget.style.borderColor = C.borderLight}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 4 }}>{d.title}{d.license ? <span style={{ fontWeight: 400, color: C.textTer, fontSize: 11, marginLeft: 8 }}>{d.license}</span> : null}</div>
+                  <div style={{ color: C.textSec, lineHeight: 1.55, fontSize: 12 }}>{d.desc}</div>
+                </a>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 12, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Crosswalk notes</div>
+            <ul style={{ fontSize: 13, lineHeight: 1.7, color: C.textSec, margin: 0, paddingLeft: 20 }}>
+              <li>O*NET uses 8-digit codes (XX-XXXX.XX), BLS uses 6-digit (XX-XXXX). Matched by appending .00.</li>
+              <li>819 of 1,016 O*NET occupations matched to BLS data. 197 unmatched occupations are typically specialty or emerging roles.</li>
+              <li>Eloundou scores cover 923 occupations; AEI covers 674. Missing values are shown as "—".</li>
+              <li>138 occupations have no core tasks listed in O*NET.</li>
+            </ul>
+          </div>
+        )}
+
         <footer style={{
           marginTop: 56, marginBottom: 56, padding: "24px 28px",
           background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8,
@@ -666,7 +723,7 @@ export default function App() {
             Task statements from <a href="https://www.onetonline.org/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>O*NET</a>. Employment and wage data from <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>BLS</a> (May 2023). AI exposure indices from six research teams — click <button onClick={() => { setShowExplainer(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", color: C.text, fontWeight: 600, cursor: "pointer", padding: 0, fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline" }}>Exposure to AI</button> above for details.
           </p>
           <p style={{ fontSize: 11, color: C.textTer, margin: 0, fontFamily: F.mono }}>
-            O*NET: CC BY 4.0, U.S. Dept of Labor/ETA · BLS: public domain · All exposure values normalized to 0–100%
+            O*NET: CC BY 4.0, U.S. Dept of Labor/ETA · BLS: public domain · All exposure values normalized to 0–100% · <button onClick={() => { setShowAbout(true); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }} style={{ background: "none", border: "none", color: C.textTer, cursor: "pointer", padding: 0, fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline" }}>About</button>
           </p>
         </footer>
       </div>
