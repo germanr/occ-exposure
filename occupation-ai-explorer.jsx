@@ -960,10 +960,16 @@ export default function App() {
       }}>
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
-          <button onClick={exportCSV} style={{
-            padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
-            fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
-          }}>Export</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={() => setShowExplainer(v => !v)} style={{
+              padding: "5px 12px", border: `1px solid ${showExplainer ? C.text : C.border}`, borderRadius: 4,
+              fontSize: 11, cursor: "pointer", background: showExplainer ? C.accentLight : C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
+            }}>What is AI exposure?</button>
+            <button onClick={exportCSV} style={{
+              padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
+              fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
+            }}>Export</button>
+          </div>
         </div>
       </header>
 
@@ -997,16 +1003,11 @@ export default function App() {
           </select>
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: 8 }}>
             <span style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.5px", textTransform: "uppercase" }}>Sort</span>
-            {[["employment", "Employment"], ["wage", "Wage"], ["alpha", "A–Z"], ["exposure", "Exposure"]].map(([k, l]) => (
+            {[["employment", "Employment"], ["wage", "Wage"], ["exposure", "Exposure"]].map(([k, l]) => (
               <SortOption key={k} label={l} active={sortBy === k} onClick={() => { setSortBy(k); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }} />
             ))}
           </div>
           <div style={{ flex: 1 }} />
-          <button onClick={() => setShowExplainer(v => !v)} style={{
-            padding: "7px 16px", border: `1px solid ${showExplainer ? C.text : C.border}`, borderRadius: 4, fontSize: 12,
-            fontWeight: 500, cursor: "pointer", background: showExplainer ? C.accentLight : C.surface, color: C.text,
-            fontFamily: F.sans, transition: "all 0.15s", letterSpacing: "0.3px", marginRight: 8,
-          }}>Exposure to AI</button>
           <button onClick={handleRandom} style={{
             padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
             fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
