@@ -1082,25 +1082,37 @@ export default function App() {
             </div>
 
             <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 12, marginTop: 28, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Does exposure translate into employment effects?</div>
-            <p style={{ fontSize: 14, lineHeight: 1.7, color: C.textSec, margin: "0 0 20px", maxWidth: 700 }}>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: C.textSec, margin: "0 0 16px", maxWidth: 700 }}>
               Exposure does not automatically mean displacement. But early evidence suggests it matters. Using payroll data from millions of U.S. workers, <a href="https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/" target="_blank" rel="noopener noreferrer" style={{ color: C.text, fontWeight: 500 }}>Brynjolfsson, Chandar & Chen (2025)</a> find that occupations more exposed to AI have seen declining employment among early-career workers (ages 22-25) since the release of ChatGPT, while employment for older workers in the same occupations has remained stable or grown.
             </p>
 
-            <div style={{ background: C.bg, borderRadius: 8, padding: "20px 24px", maxWidth: 520, margin: "0 auto 20px" }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 4, fontFamily: F.sans }}>
-                Employment changes for workers aged 22-25, by AI exposure
-              </div>
-              <div style={{ fontSize: 11, color: C.textTer, marginBottom: 12, lineHeight: 1.4 }}>
-                Indexed to October 2022. Darker lines represent more AI-exposed occupations.
-              </div>
-              <img src={`${import.meta.env.BASE_URL}images/canaries-figure2-panel.png`} alt="Employment trends by AI exposure quintile for workers aged 22-25" style={{ width: "100%", display: "block", borderRadius: 4 }} />
-              <div style={{ fontSize: 10, color: C.textTer, marginTop: 10, lineHeight: 1.5, fontFamily: F.mono }}>
-                Source: Brynjolfsson, Chandar & Chen (2025), "Canaries in the Coal Mine," Figure 2. Data from ADP payroll records covering millions of U.S. workers.
-              </div>
+            <div style={{ background: C.bg, borderRadius: 8, padding: "16px 20px", maxWidth: 520, margin: "0 auto 20px" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2, fontFamily: F.sans }}>Employment of workers aged 22-25, by AI exposure quintile</div>
+              <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 10, lineHeight: 1.4 }}>Indexed to October 2022. Darker lines = more AI-exposed occupations.</div>
+              <img src={`${import.meta.env.BASE_URL}images/canaries-figure2-panel.png`} alt="Employment trends by AI exposure quintile for workers aged 22-25" style={{ width: "100%", display: "block" }} />
+              <div style={{ fontSize: 9.5, color: C.textTer, marginTop: 8, lineHeight: 1.45, fontFamily: F.mono }}>Source: Brynjolfsson, Chandar & Chen (2025), Figure 2. ADP payroll records.</div>
             </div>
 
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: C.textSec, margin: "0 0 16px", maxWidth: 700 }}>
+              Critically, not all forms of AI exposure have the same effect. The same study distinguishes between occupations where AI primarily <em>automates</em> work (replacing tasks) versus those where it <em>augments</em> work (assisting workers). Employment declines are concentrated in automation-heavy occupations, while occupations where AI is used as a helper show stable or growing employment.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, maxWidth: 700, margin: "0 auto 20px" }} className="footer-grid">
+              <div style={{ background: C.bg, borderRadius: 8, padding: "14px 16px" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#C53030", marginBottom: 2, fontFamily: F.sans }}>Automation: employment declines</div>
+                <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 8, lineHeight: 1.4 }}>Jobs where AI replaces tasks show falling employment for young workers.</div>
+                <img src={`${import.meta.env.BASE_URL}images/canaries-automation.png`} alt="Employment by automation quintile" style={{ width: "100%", display: "block" }} />
+              </div>
+              <div style={{ background: C.bg, borderRadius: 8, padding: "14px 16px" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#276749", marginBottom: 2, fontFamily: F.sans }}>Augmentation: no decline</div>
+                <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 8, lineHeight: 1.4 }}>Jobs where AI assists workers show stable or growing employment.</div>
+                <img src={`${import.meta.env.BASE_URL}images/canaries-augmentation.png`} alt="Employment by augmentation quintile" style={{ width: "100%", display: "block" }} />
+              </div>
+            </div>
+            <div style={{ fontSize: 9.5, color: C.textTer, lineHeight: 1.45, fontFamily: F.mono, maxWidth: 700, margin: "0 auto 16px", textAlign: "center" }}>Source: Brynjolfsson, Chandar & Chen (2025), Figure 3. Automation and augmentation quintiles defined using the Anthropic Economic Index.</div>
+
             <p style={{ fontSize: 13, lineHeight: 1.7, color: C.textTer, margin: "0", maxWidth: 700, fontStyle: "italic" }}>
-              Employment declines appear concentrated in occupations where AI automates work, with muted effects where AI augments it. The long-run implications of AI for employment remain an active area of research.
+              These findings are consistent with AI substituting for some entry-level tasks while complementing others. The labor market effects of AI remain an active area of research, and the long-run implications are still unfolding.
             </p>
           </div>
         )}
