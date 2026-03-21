@@ -1,5 +1,5 @@
 /*******************************************************************************
-* OCCUPATION & AI IMPACT EXPLORER — Clean Exposure Indices
+* OCCUPATION & AI IMPACT EXPLORER - Clean Exposure Indices
 * Purpose: Import, normalize, and harmonize 6 AI exposure indices
 * Input:   rawdata/exposure/eloundou_occ_level.xlsx
 *          rawdata/exposure/aei_occupation_level.csv (built by process-aei.py)
@@ -31,7 +31,7 @@ glo cod  "${root}/code"                                  ;
 
 
 *==============================================================================;
-* STEP 1: Eloundou et al. (2023) — already 0-1                                ;
+* STEP 1: Eloundou et al. (2023) - already 0-1                                ;
 *==============================================================================;
 
 import excel "${raw}/exposure/eloundou_occ_level.xlsx",
@@ -51,7 +51,7 @@ di as result "Eloundou: `=_N' occupations"               ;
 
 
 *==============================================================================;
-* STEP 2: Anthropic Economic Index (2025) — already 0-1                        ;
+* STEP 2: Anthropic Economic Index (2025) - already 0-1                        ;
 *         Built from HuggingFace raw data by process-aei.py                    ;
 *==============================================================================;
 
@@ -74,7 +74,7 @@ di as result "AEI: `=_N' occupations"                    ;
 
 
 *==============================================================================;
-* STEP 3: Felten, Raj & Seamans (2023) — normalize to 0-1                     ;
+* STEP 3: Felten, Raj & Seamans (2023) - normalize to 0-1                     ;
 *==============================================================================;
 
 import excel "${raw}/exposure/felten_lm_aioe.xlsx",
@@ -100,7 +100,7 @@ di as result "Felten: `=_N' occupations"                 ;
 
 
 *==============================================================================;
-* STEP 4: GENOE / Georgieff & Hyee (2024) — already 0-1                       ;
+* STEP 4: GENOE / Georgieff & Hyee (2024) - already 0-1                       ;
 *==============================================================================;
 
 import excel "${raw}/exposure/genoe_soc18.xlsx",
@@ -121,48 +121,25 @@ di as result "GENOE: `=_N' occupations"                  ;
 
 
 *==============================================================================;
-* STEP 5: Pizzinelli et al. (2023) — SOC 2010, crosswalk + normalize          ;
+* STEP 5: Pizzinelli et al. (2023) - SOC 2010, crosswalk + normalize          ;
 *==============================================================================;
 
-* 5a. Import crosswalk (SOC 2010 to 2018)
-import excel "${raw}/exposure/soc_2010_to_2018_crosswalk.xlsx",
-    cellrange(A9) clear                                  ;
+* 5a. Import Pizzinelli data (CSV, xlsx has formula cells) ;
+import delimited "${raw}/exposure/pizzinelli_caioe_clean.csv", clear ;
 
-rename A soc_2010                                        ;
-rename B _drop1                                          ;
-rename C soc_2018                                        ;
-rename D _drop2                                          ;
-drop _drop*                                              ;
-drop if missing(soc_2010) | missing(soc_2018)            ;
-duplicates drop                                          ;
-tempfile xwalk                                           ;
-save `xwalk', replace                                    ;
-
-* 5b. Import Pizzinelli data
-import excel "${raw}/exposure/pizzinelli_caioe.xlsx",
-    sheet("data_US_SOC2010") firstrow clear               ;
-
-tostring soc10, gen(soc_2010) format(%06.0f)             ;
-replace soc_2010 =
-    substr(soc_2010, 1, 2) + "-" + substr(soc_2010, 3, 4);
-
+rename occ_code soc_6dig                                 ;
 rename c_aioe pizzinelli_raw                             ;
-keep soc_2010 pizzinelli_raw                             ;
+keep soc_6dig pizzinelli_raw                             ;
 destring pizzinelli_raw, replace                         ;
 
-* 5c. Crosswalk to SOC 2018
-merge m:1 soc_2010 using `xwalk'                         ;
-tab _merge                                               ;
-keep if _merge == 3; drop _merge soc_2010                ;
-
-collapse (mean) pizzinelli_raw, by(soc_2018)             ;
+* Most SOC 2010 codes are identical to SOC 2018           ;
+* Average if multiple rows per code                       ;
+collapse (mean) pizzinelli_raw, by(soc_6dig)             ;
 
 qui sum pizzinelli_raw                                   ;
 gen pizzinelli =
     (pizzinelli_raw - r(min)) / (r(max) - r(min))        ;
 drop pizzinelli_raw                                      ;
-
-rename soc_2018 soc_6dig                                 ;
 gen soc = soc_6dig + ".00"                               ;
 drop soc_6dig                                            ;
 
@@ -174,7 +151,7 @@ di as result "Pizzinelli: `=_N' occupations"             ;
 
 
 *==============================================================================;
-* STEP 6: Brynjolfsson, Mitchell & Rock (2018) — normalize to 0-1             ;
+* STEP 6: Brynjolfsson, Mitchell & Rock (2018) - normalize to 0-1             ;
 *==============================================================================;
 
 import delimited "${raw}/exposure/brynjolfsson_sml.csv",

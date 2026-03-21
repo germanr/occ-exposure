@@ -1,5 +1,5 @@
 /*******************************************************************************
-* OCCUPATION & AI IMPACT EXPLORER — Merge All Data
+* OCCUPATION & AI IMPACT EXPLORER - Merge All Data
 * Purpose: Combine O*NET occupations with BLS data and all exposure indices
 * Input:   data/onet_occupations.dta
 *          data/onet_alt_titles.dta
@@ -51,15 +51,16 @@ gen employment_share = employment / r(sum)               ;
 * STEP 4: Merge all exposure indices                                           ;
 *==============================================================================;
 
-* Eloundou and AEI: O*NET 8-digit key
+* Eloundou and AEI: O*NET 8-digit key                    ;
 merge 1:1 soc using "${dat}/exposure_eloundou.dta"       ;
 tab _merge; drop if _merge == 2; drop _merge             ;
 
 merge 1:1 soc using "${dat}/exposure_aei.dta"            ;
 tab _merge; drop if _merge == 2; drop _merge             ;
 
-* Felten, GENOE, Pizzinelli, SML: 6-digit key
-* For O*NET sub-codes (e.g., 15-1252.01), try parent .00
+* Felten, GENOE, Pizzinelli, SML: 6-digit key             ;
+* For O*NET sub-codes (e.g., 15-1252.01), try parent .00  ;
+cap drop soc_6dig                                        ;
 gen soc_6dig = substr(soc, 1, 7) + ".00"                 ;
 
 foreach f in "felten" "genoe" "pizzinelli" "sml" {;
@@ -93,7 +94,8 @@ drop soc_6dig                                            ;
 
 preserve                                                 ;
     use "${dat}/onet_tasks.dta", clear                    ;
-    collapse (count) task_count = task, by(soc)           ;
+    gen _one = 1                                          ;
+    collapse (sum) task_count = _one, by(soc)             ;
     tempfile tcounts                                      ;
     save `tcounts', replace                              ;
 restore                                                  ;

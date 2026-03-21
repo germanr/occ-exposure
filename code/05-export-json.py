@@ -66,7 +66,7 @@ for _, r in df.iterrows():
 with open(os.path.join(SRC, "occupations.json"), "w", encoding="utf-8") as f:
     json.dump(occupations, f, separators=(",", ":"))
 
-print(f"  → occupations.json: {len(occupations)} entries")
+print(f"  -> occupations.json: {len(occupations)} entries")
 
 
 # ── 2. Load task statements ─────────────────────────────────────────────────
@@ -98,7 +98,7 @@ with open(os.path.join(SRC, "tasks.json"), "w", encoding="utf-8") as f:
     json.dump(tasks, f, separators=(",", ":"))
 
 total_tasks = sum(len(v) for v in tasks.values())
-print(f"  → tasks.json: {total_tasks} tasks across {len(tasks)} occupations")
+print(f"  -> tasks.json: {total_tasks} tasks across {len(tasks)} occupations")
 
 
 # ── 3. Build summaries ──────────────────────────────────────────────────────
@@ -124,5 +124,5 @@ for occ in occupations:
 with open(os.path.join(SRC, "summaries.json"), "w", encoding="utf-8") as f:
     json.dump(summaries, f, separators=(",", ":"))
 
-print(f"  → summaries.json: {len(summaries)} entries")
+print(f"  -> summaries.json: {len(summaries)} entries")
 print("Done.")

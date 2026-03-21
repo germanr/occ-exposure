@@ -1,5 +1,5 @@
 /*******************************************************************************
-* OCCUPATION & AI IMPACT EXPLORER — Clean O*NET 30.2
+* OCCUPATION & AI IMPACT EXPLORER - Clean O*NET 30.2
 * Purpose: Import task statements, occupation list, and alternate titles
 * Input:   rawdata/onet/Task Statements.xlsx
 *          rawdata/onet/Occupation Data.xlsx
@@ -74,7 +74,7 @@ keep soc alt_title                                       ;
 sort soc alt_title                                       ;
 by soc: gen n = _n                                       ;
 
-* Cap at 15 titles per occupation
+* Cap at 15 titles per occupation                        ;
 drop if n > 15                                           ;
 
 reshape wide alt_title, i(soc) j(n)                     ;

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* OCCUPATION & AI IMPACT EXPLORER — Clean BLS OES
+* OCCUPATION & AI IMPACT EXPLORER - Clean BLS OES
 * Purpose: Import employment and wage data from BLS May 2024
 * Input:   rawdata/bls/national_M2024_dl.xlsx
 * Output:  data/bls_employment.dta
@@ -27,8 +27,11 @@ keep if O_GROUP == "detailed"                            ;
 rename OCC_CODE soc_6dig                                 ;
 rename OCC_TITLE occ_title                               ;
 
-destring TOT_EMP, gen(employment) ignore(",*")           ;
-destring A_MEAN,  gen(mean_wage)  ignore(",*#")          ;
+* TOT_EMP and A_MEAN may import as string or numeric     ;
+cap destring TOT_EMP, replace ignore(",*")               ;
+cap destring A_MEAN,  replace ignore(",*#")              ;
+rename TOT_EMP employment                                ;
+rename A_MEAN  mean_wage                                  ;
 
 keep soc_6dig occ_title employment mean_wage             ;
 
