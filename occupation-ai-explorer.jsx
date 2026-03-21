@@ -1011,8 +1011,7 @@ export default function App() {
               <SortOption key={k} label={l} active={sortBy === k} onClick={() => { setSortBy(k); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }} />
             ))}
           </div>
-          <div style={{ flex: 1 }} />
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
             <button onClick={handleRandom} style={{
               padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
               fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
