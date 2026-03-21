@@ -5,45 +5,47 @@
 * Output:  data/bls_employment.dta
 *******************************************************************************/
 
-#delimit ;
-clear all ; set more off ;
+#delimit;
+clear all; set more off;
+
+glo user = lower("`=c(username)'")                       ;
+glo root "C:/Users/${user}/Dropbox/Admin/website/occ_exposure" ;
+glo raw  "${root}/rawdata"                               ;
+glo dat  "${root}/data"                                  ;
+glo cod  "${root}/code"                                  ;
 
 
 *==============================================================================;
 * STEP 1: Import and filter to detailed occupations                            ;
 *==============================================================================;
 
-import excel "${raw}/bls/national_M2023_dl.xlsx", firstrow clear               ;
+import excel "${raw}/bls/national_M2023_dl.xlsx",
+    firstrow clear                                       ;
 
-* Keep only detailed (non-overlapping) occupation rows
-keep if O_GROUP == "detailed"                                                  ;
+keep if O_GROUP == "detailed"                            ;
 
-rename OCC_CODE soc_6dig                                                       ;
-rename OCC_TITLE occ_title                                                     ;
+rename OCC_CODE soc_6dig                                 ;
+rename OCC_TITLE occ_title                               ;
 
-* Employment
-destring TOT_EMP, gen(employment) ignore(",*")                                 ;
+destring TOT_EMP, gen(employment) ignore(",*")           ;
+destring A_MEAN,  gen(mean_wage)  ignore(",*#")          ;
 
-* Mean annual wage (# = top-coded)
-destring A_MEAN, gen(mean_wage) ignore(",*#")                                  ;
-
-keep soc_6dig occ_title employment mean_wage                                   ;
+keep soc_6dig occ_title employment mean_wage             ;
 
 
 *==============================================================================;
 * STEP 2: Create O*NET-style SOC code for merging                              ;
 *==============================================================================;
 
-* BLS uses XX-XXXX; O*NET uses XX-XXXX.00
-gen soc = soc_6dig + ".00"                                                     ;
+gen soc = soc_6dig + ".00"                               ;
 
 
 *==============================================================================;
 * STEP 3: Save                                                                 ;
 *==============================================================================;
 
-sort soc                                                                       ;
-compress                                                                       ;
-save "${dat}/bls_employment.dta", replace                                      ;
+sort soc                                                 ;
+compress                                                 ;
+save "${dat}/bls_employment.dta", replace                ;
 
-di as result "BLS occupations: `=_N'"                                          ;
+di as result "BLS occupations: `=_N'"                    ;
