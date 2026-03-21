@@ -968,7 +968,7 @@ export default function App() {
             <button onClick={exportCSV} style={{
               padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
               fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
-            }}>Export</button>
+            }}>Export data</button>
             <button onClick={() => { setShowAbout(v => !v); if (!showAbout) setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100); }} style={{
               padding: "5px 12px", border: `1px solid ${showAbout ? C.text : C.border}`, borderRadius: 4,
               fontSize: 11, cursor: "pointer", background: showAbout ? C.accentLight : C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
@@ -1086,7 +1086,7 @@ export default function App() {
               Exposure does not automatically mean displacement. But early evidence suggests it matters. Using payroll data from millions of U.S. workers, <a href="https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/" target="_blank" rel="noopener noreferrer" style={{ color: C.text, fontWeight: 500 }}>Brynjolfsson, Chandar & Chen (2025)</a> find that occupations more exposed to AI have seen declining employment among early-career workers (ages 22-25) since the release of ChatGPT, while employment for older workers in the same occupations has remained stable or grown.
             </p>
 
-            <div style={{ background: C.bg, borderRadius: 8, padding: "16px 20px", maxWidth: 520, margin: "0 auto 20px" }}>
+            <div style={{ background: C.bg, borderRadius: 8, padding: "16px 20px", maxWidth: 460, margin: "0 auto 20px" }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: C.text, marginBottom: 2, fontFamily: F.sans }}>Employment of workers aged 22-25, by AI exposure quintile</div>
               <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 10, lineHeight: 1.4 }}>Indexed to October 2022. Darker lines = more AI-exposed occupations.</div>
               <img src={`${import.meta.env.BASE_URL}images/canaries-figure2-panel.png`} alt="Employment trends by AI exposure quintile for workers aged 22-25" style={{ width: "100%", display: "block" }} />
@@ -1101,12 +1101,16 @@ export default function App() {
               <div style={{ background: C.bg, borderRadius: 8, padding: "14px 16px" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#C53030", marginBottom: 2, fontFamily: F.sans }}>Automation: employment declines</div>
                 <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 8, lineHeight: 1.4 }}>Jobs where AI replaces tasks show falling employment for young workers.</div>
-                <img src={`${import.meta.env.BASE_URL}images/canaries-automation.png`} alt="Employment by automation quintile" style={{ width: "100%", display: "block" }} />
+                <div style={{ overflow: "hidden", maxHeight: 200 }}>
+                  <img src={`${import.meta.env.BASE_URL}images/canaries-automation.png`} alt="Employment by automation quintile" style={{ width: "100%", display: "block" }} />
+                </div>
               </div>
               <div style={{ background: C.bg, borderRadius: 8, padding: "14px 16px" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "#276749", marginBottom: 2, fontFamily: F.sans }}>Augmentation: no decline</div>
                 <div style={{ fontSize: 10.5, color: C.textTer, marginBottom: 8, lineHeight: 1.4 }}>Jobs where AI assists workers show stable or growing employment.</div>
-                <img src={`${import.meta.env.BASE_URL}images/canaries-augmentation.png`} alt="Employment by augmentation quintile" style={{ width: "100%", display: "block" }} />
+                <div style={{ overflow: "hidden", maxHeight: 200 }}>
+                  <img src={`${import.meta.env.BASE_URL}images/canaries-augmentation.png`} alt="Employment by augmentation quintile" style={{ width: "100%", display: "block" }} />
+                </div>
               </div>
             </div>
             <div style={{ fontSize: 9.5, color: C.textTer, lineHeight: 1.45, fontFamily: F.mono, maxWidth: 700, margin: "0 auto 16px", textAlign: "center" }}>Source: Brynjolfsson, Chandar & Chen (2025), Figure 3. Automation and augmentation quintiles defined using the Anthropic Economic Index.</div>
