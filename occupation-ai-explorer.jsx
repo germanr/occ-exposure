@@ -969,6 +969,10 @@ export default function App() {
               padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
               fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
             }}>Export</button>
+            <button onClick={() => { setShowAbout(v => !v); if (!showAbout) setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }), 100); }} style={{
+              padding: "5px 12px", border: `1px solid ${showAbout ? C.text : C.border}`, borderRadius: 4,
+              fontSize: 11, cursor: "pointer", background: showAbout ? C.accentLight : C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
+            }}>About</button>
           </div>
         </div>
       </header>
