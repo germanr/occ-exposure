@@ -2,7 +2,7 @@
 * OCCUPATION & AI IMPACT EXPLORER — Clean Exposure Indices
 * Purpose: Import, normalize, and harmonize 6 AI exposure indices
 * Input:   rawdata/exposure/eloundou_occ_level.xlsx
-*          rawdata/exposure/aei_onet_final.csv
+*          rawdata/exposure/aei_occupation_level.csv (built by process-aei.py)
 *          rawdata/exposure/felten_lm_aioe.xlsx
 *          rawdata/exposure/genoe_soc18.xlsx
 *          rawdata/exposure/pizzinelli_caioe.xlsx
@@ -45,21 +45,15 @@ di as result "Eloundou: `=_N' occupations"                                     ;
 
 *==============================================================================;
 * STEP 2: Anthropic Economic Index (2025) — already 0-1                        ;
+*          Built from HuggingFace raw data by process-aei.py                   ;
 *==============================================================================;
 
-import delimited "${raw}/exposure/aei_onet_final.csv", clear                   ;
+import delimited "${raw}/exposure/aei_occupation_level.csv", clear             ;
 
-keep if row_type == "original"                                                 ;
-
-rename onet_soc_code soc                                                       ;
 rename pct_tasks_automation  aei_automation                                    ;
 rename pct_tasks_augmentation aei_augmentation                                 ;
 rename mean_automation       aei_mean_automation                               ;
 rename mean_augmentation     aei_mean_augmentation                             ;
-
-* Rescale mean measures from 0-100 to 0-1
-replace aei_mean_automation    = aei_mean_automation / 100                     ;
-replace aei_mean_augmentation  = aei_mean_augmentation / 100                   ;
 
 keep soc aei_automation aei_augmentation aei_mean_automation aei_mean_augmentation ;
 

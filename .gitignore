@@ -1,3 +1,5 @@
 node_modules/
 dist/
+data/*.dta
+rawdata/exposure/aei_occupation_level.csv
 *.log

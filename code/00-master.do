@@ -22,6 +22,9 @@ cap mkdir "${dat}"                                                             ;
 * PIPELINE                                                                     ;
 *==============================================================================;
 
+* Process AEI raw data from HuggingFace into occupation-level CSV
+shell python "${cod}/process-aei.py"                                           ;
+
 do "${cod}/01-clean-onet.do"                                                   ;
 do "${cod}/02-clean-bls.do"                                                    ;
 do "${cod}/03-clean-exposure.do"                                               ;

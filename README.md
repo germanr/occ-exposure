@@ -40,7 +40,7 @@ All three files are **raw source files** extracted from the O\*NET database zip.
 | File | Paper | Download | Status |
 |------|-------|----------|--------|
 | `eloundou_occ_level.xlsx` | Eloundou, Manning, Mishkin & Rock (2023). "GPTs are GPTs." *Science*. [DOI](https://doi.org/10.1126/science.adj0998) | [GitHub: openai/gpts-are-gpts](https://github.com/openai/gpts-are-gpts) — `data/occ_level.csv` | **Raw.** Renamed from the Science supplementary materials. |
-| `aei_onet_final.csv` | Handa, Reyes et al. (2025). Anthropic Economic Index. [arxiv.org/abs/2503.04761](https://arxiv.org/abs/2503.04761) | Underlying data: [HuggingFace: Anthropic/EconomicIndex](https://huggingface.co/datasets/Anthropic/EconomicIndex) | **Processed.** Built by the [ai-adaptation-educ](https://github.com/germanjreyes) pipeline, merging AEI task penetration data with BLS employment, O\*NET titles, and education data. Not a direct download. |
+| `aei/*.csv` (3 files) | Handa, Reyes et al. (2025). Anthropic Economic Index. [arxiv.org/abs/2503.04761](https://arxiv.org/abs/2503.04761) | [HuggingFace: Anthropic/EconomicIndex](https://huggingface.co/datasets/Anthropic/EconomicIndex) | **Raw.** `automation_vs_augmentation_by_task.csv` (task-level collaboration fractions), `onet_task_statements.csv` (task-to-occupation mapping), `task_pct_v2.csv` (task usage shares). Aggregated to occupation level by `code/process-aei.py`. |
 | `felten_lm_aioe.xlsx` | Felten, Raj & Seamans (2023). "How Will Language Modelers Like ChatGPT Affect Occupations and Industries?" SSRN. [DOI](https://doi.org/10.2139/ssrn.4375268) | [GitHub: AIOE-Data/AIOE](https://github.com/AIOE-Data/AIOE) — `Language Modeling AIOE and AIIE.xlsx` | **Raw.** Renamed copy of the GitHub file. |
 | `genoe_soc18.xlsx` | Georgieff & Hyee (2024). "Artificial Intelligence and Employment." OECD. [DOI](https://doi.org/10.1787/f6c10404-en) | Not publicly available. Obtained from the authors. | **Author-provided.** Contact the authors for access. |
 | `pizzinelli_caioe.xlsx` | Pizzinelli, Panton, Tavares, Toscani & Yadav (2023). "Labor Market Exposure to AI." IMF. [DOI](https://www.imf.org/en/Publications/Staff-Discussion-Notes/Issues/2024/01/14/542379) | Not publicly available. Obtained from the authors. | **Author-provided.** Original filename: `AIOE_CAIOE_theta_for_sharing.xlsx`. |
@@ -62,6 +62,7 @@ The `code/` folder rebuilds all website data from raw sources. Run `do code/00-m
 rawdata/                         ← raw source files (documented above)
 code/
 ├── 00-master.do                 ← runs everything
+├── process-aei.py               ← HuggingFace raw → occupation-level CSV
 ├── 01-clean-onet.do             ← tasks, occupations, alt titles
 ├── 02-clean-bls.do              ← employment and wages
 ├── 03-clean-exposure.do         ← all 6 indices, normalized to 0-1
