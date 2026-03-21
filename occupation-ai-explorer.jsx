@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import _ from "lodash";
 import OCCUPATIONS_RAW from "./src/occupations.json";
-import ALL_TASKS from "./src/tasks.json";
 import SUMMARIES from "./src/summaries.json";
 
 const OCCUPATIONS = OCCUPATIONS_RAW.map(o => ({
@@ -9,7 +8,13 @@ const OCCUPATIONS = OCCUPATIONS_RAW.map(o => ({
   employmentShare: o.employmentShare || 0,
 }));
 
-const TOTAL_TASKS = Object.values(ALL_TASKS).reduce((sum, arr) => sum + arr.length, 0);
+const TOTAL_TASKS = OCCUPATIONS.reduce((sum, o) => sum + (o.taskCount || 0), 0);
+
+// Lazy-load tasks.json — not bundled, fetched on demand from public/data/
+let ALL_TASKS = null;
+const _tasksPromise = fetch(`${import.meta.env.BASE_URL}data/tasks.json`)
+  .then(r => r.json())
+  .then(d => { ALL_TASKS = d; return d; });
 
 // ─── Formatters ───
 const fmt = (n) => {
@@ -562,6 +567,10 @@ const MAJOR_GROUPS = [
 function parseHash() {
   const h = window.location.hash.replace("#", "").replace(/^\//, "");
   if (h === "quiz") return { view: "quiz" };
+  if (h.startsWith("compare/")) {
+    const parts = h.replace("compare/", "").split("/");
+    if (parts.length === 2) return { view: "compare", socs: parts.map(s => s.includes(".") ? s : s + ".00") };
+  }
   if (/^\d{2}-\d{4}/.test(h)) {
     const soc = h.includes(".") ? h : h + ".00";
     return { view: "detail", soc };
@@ -581,6 +590,7 @@ export default function App() {
   const initHash = useMemo(() => parseHash(), []);
   const [view, setView] = useState(initHash.view);
   const [selectedSoc, setSelectedSoc] = useState(initHash.soc || null);
+  const initCompare = initHash.view === "compare" && initHash.socs ? initHash.socs : [];
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("employment");
   const [category, setCategory] = useState("all");
@@ -589,6 +599,10 @@ export default function App() {
   const [fadeIn, setFadeIn] = useState(true);
   const [showExplainer, setShowExplainer] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareSocs, setCompareSocs] = useState(initCompare);
+  const [tasksReady, setTasksReady] = useState(!!ALL_TASKS);
+  useEffect(() => { if (!ALL_TASKS) _tasksPromise.then(() => setTasksReady(true)); }, []);
   const perPage = 36;
 
   const filtered = useMemo(() => {
@@ -616,8 +630,9 @@ export default function App() {
   useEffect(() => {
     if (view === "detail" && selectedSoc) setHash(selectedSoc.replace(".00", ""));
     else if (view === "quiz") setHash("quiz");
+    else if (view === "compare" && compareSocs.length === 2) setHash("compare/" + compareSocs.map(s => s.replace(".00", "")).join("/"));
     else if (view === "grid") setHash("");
-  }, [view, selectedSoc]);
+  }, [view, selectedSoc, compareSocs]);
 
   useEffect(() => {
     const onHash = () => {
@@ -627,6 +642,8 @@ export default function App() {
         if (occ) { setSelectedSoc(h.soc); setView("detail"); setFadeIn(true); }
       } else if (h.view === "quiz") {
         setView("quiz"); setFadeIn(true);
+      } else if (h.view === "compare" && h.socs) {
+        setCompareSocs(h.socs); setView("compare"); setFadeIn(true);
       } else {
         setView("grid"); setSelectedSoc(null); setFadeIn(true);
       }
@@ -635,7 +652,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  const getTasks = useCallback((soc) => ALL_TASKS[soc] || null, []);
+  const getTasks = useCallback((soc) => ALL_TASKS ? (ALL_TASKS[soc] || null) : null, [tasksReady]);
 
   const openOcc = useCallback((soc) => {
     setFadeIn(false);
@@ -842,6 +859,95 @@ export default function App() {
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // COMPARE VIEW
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  if (view === "compare" && compareSocs.length === 2) {
+    const [socA, socB] = compareSocs;
+    const cA = OCCUPATIONS.find(o => o.soc === socA);
+    const cB = OCCUPATIONS.find(o => o.soc === socB);
+    if (cA && cB) {
+      const exA = cA.exposure || {}, exB = cB.exposure || {};
+      const tasksA = ALL_TASKS[socA] || [], tasksB = ALL_TASKS[socB] || [];
+      const indexLabels = [
+        ["eloundou_beta", "AI + tools (Eloundou)"], ["eloundou_alpha", "AI alone (Eloundou)"],
+        ["aei_augmentation", "AI as helper (Anthropic)"], ["aei_automation", "AI as replacement (Anthropic)"],
+        ["felten", "AI–skill overlap (Felten)"], ["genoe", "Generative AI (OECD)"],
+        ["pizzinelli", "Complementary AI (Pizzinelli)"], ["sml", "Machine learning (Brynjolfsson)"],
+      ];
+      return (
+        <div style={shell}>
+          <style>{GCSS}</style>
+          <header style={{ background: `${C.bg}DD`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100 }}>
+            <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
+              <button onClick={() => { setView("grid"); setCompareSocs([]); setCompareMode(false); }} style={{ padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec }}>← Explorer</button>
+            </div>
+          </header>
+          <div style={{ maxWidth: 880, margin: "0 auto", padding: "0 32px" }}>
+            <div style={{ padding: "48px 0 24px", animation: "fadeUp 0.4s cubic-bezier(.22,1,.36,1) both" }}>
+              <h1 style={{ fontSize: 32, fontWeight: 700, fontFamily: F.sans, letterSpacing: "-0.03em", margin: "0 0 8px" }}>Comparing two occupations</h1>
+              <p style={{ fontSize: 14, color: C.textSec, margin: 0 }}>{cA.title} vs. {cB.title}</p>
+            </div>
+
+            {/* Side-by-side cards */}
+            <div className="quiz-cards" style={{ display: "flex", gap: 20, marginBottom: 28, animation: "fadeUp 0.35s cubic-bezier(.22,1,.36,1) both" }}>
+              {[[cA, socA], [cB, socB]].map(([o, soc]) => (
+                <div key={soc} style={{ flex: 1, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden", maxWidth: 400, cursor: "pointer" }} onClick={() => { setView("detail"); setSelectedSoc(soc); setCompareMode(false); }}>
+                  <CatImage soc={soc} height={140} />
+                  <div style={{ padding: "14px 18px 16px" }}>
+                    <div style={{ fontSize: 10, color: C.textTer, fontFamily: F.mono, marginBottom: 4 }}>{soc.replace(".00", "")}</div>
+                    <div style={{ fontSize: 17, fontWeight: 700, fontFamily: F.sans, lineHeight: 1.25, marginBottom: 6 }}>{o.title}</div>
+                    <div style={{ fontSize: 13, color: C.textSec }}>{fmt(o.employment)} workers · {fmtWage(o.meanWage)}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Exposure comparison */}
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px", marginBottom: 20 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 14, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Exposure indices compared</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px 16px", alignItems: "center" }}>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono }}>Index</div>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, textAlign: "right", minWidth: 80 }}>{cA.title.length > 20 ? cA.title.slice(0, 18) + "…" : cA.title}</div>
+                <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, textAlign: "right", minWidth: 80 }}>{cB.title.length > 20 ? cB.title.slice(0, 18) + "…" : cB.title}</div>
+                {indexLabels.map(([key, label]) => {
+                  const vA = exA[key], vB = exB[key];
+                  if (vA == null && vB == null) return null;
+                  const higherA = (vA ?? 0) >= (vB ?? 0);
+                  return (
+                    <React.Fragment key={key}>
+                      <div style={{ fontSize: 12, color: C.textSec }}>{label}</div>
+                      <div style={{ fontSize: 13, fontWeight: higherA ? 700 : 400, color: higherA ? "#276749" : C.text, textAlign: "right", fontFamily: F.mono }}>{vA != null ? fmtPct(vA) : "—"}</div>
+                      <div style={{ fontSize: 13, fontWeight: !higherA ? 700 : 400, color: !higherA ? "#276749" : C.text, textAlign: "right", fontFamily: F.mono }}>{vB != null ? fmtPct(vB) : "—"}</div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Side-by-side tasks */}
+            <div className="quiz-tasks" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 48 }}>
+              {[[cA, tasksA], [cB, tasksB]].map(([o, t]) => (
+                <div key={o.soc} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px" }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F.sans, marginBottom: 4 }}>{o.title}</div>
+                  <div style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, marginBottom: 12 }}>{t.length} tasks</div>
+                  {t.length > 0 ? (
+                    <ol style={{ margin: 0, paddingLeft: 18, fontSize: 12, lineHeight: 1.65, color: C.textSec, maxHeight: 320, overflowY: "auto" }}>
+                      {t.map((task, i) => <li key={i} style={{ marginBottom: 4 }}>{task}</li>)}
+                    </ol>
+                  ) : (
+                    <p style={{ fontSize: 12, color: C.textTer, fontStyle: "italic" }}>No task statements available.</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // GRID VIEW
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   return (
@@ -911,7 +1017,22 @@ export default function App() {
             fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
             fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
           }}>Quiz me</button>
+          <button onClick={() => { setCompareMode(m => !m); setCompareSocs([]); }} style={{
+            padding: "7px 16px", border: `1px solid ${compareMode ? "#276749" : C.border}`, borderRadius: 4, fontSize: 12,
+            fontWeight: 500, cursor: "pointer", background: compareMode ? "#27674915" : C.surface, color: compareMode ? "#276749" : C.text,
+            fontFamily: F.sans, transition: "all 0.15s", letterSpacing: "0.3px",
+          }}>{compareMode ? "Cancel compare" : "Compare"}</button>
         </div>
+
+        {/* Compare mode selection bar */}
+        {compareMode && (
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 6, padding: "10px 16px", marginBottom: 16, display: "flex", alignItems: "center", gap: 12, fontSize: 13, fontFamily: F.sans, color: C.textSec, animation: "fadeUp 0.2s both" }}>
+            <span>{compareSocs.length === 0 ? "Click two occupations to compare" : compareSocs.length === 1 ? "Click one more occupation" : "Ready to compare"}</span>
+            {compareSocs.length > 0 && <span style={{ fontWeight: 600, color: C.text }}>{compareSocs.map(s => OCCUPATIONS.find(o => o.soc === s)?.title).filter(Boolean).join(" vs. ")}</span>}
+            <div style={{ flex: 1 }} />
+            {compareSocs.length === 2 && <button onClick={() => { setView("compare"); setCompareMode(false); window.scrollTo({ top: 0 }); }} style={{ padding: "5px 14px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12, fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg, fontFamily: F.sans }}>Compare →</button>}
+          </div>
+        )}
 
         {/* Exposure to AI explainer */}
         {showExplainer && (
@@ -962,7 +1083,15 @@ export default function App() {
 
         <div className="grid-main" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
           {paged.map((occ, i) => (
-            <Tile key={occ.soc} occ={occ} idx={i} onClick={() => openOcc(occ.soc)} highlighted={shuffleHl} search={search} />
+            <Tile key={occ.soc} occ={occ} idx={i} onClick={() => {
+              if (compareMode) {
+                setCompareSocs(prev => {
+                  if (prev.includes(occ.soc)) return prev.filter(s => s !== occ.soc);
+                  if (prev.length >= 2) return [prev[1], occ.soc];
+                  return [...prev, occ.soc];
+                });
+              } else { openOcc(occ.soc); }
+            }} highlighted={shuffleHl || (compareMode && compareSocs.includes(occ.soc) ? occ.soc : null)} search={search} />
           ))}
         </div>
 
