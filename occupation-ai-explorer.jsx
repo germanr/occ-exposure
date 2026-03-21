@@ -980,8 +980,8 @@ export default function App() {
           <h1 className="hero-title" style={{ fontSize: 48, fontWeight: 700, fontFamily: F.sans, letterSpacing: "-0.04em", margin: "0 0 16px", lineHeight: 1.08 }}>
             Which jobs will AI transform?
           </h1>
-          <p style={{ fontSize: 16, lineHeight: 1.7, color: C.textSec, margin: "0 0 32px", maxWidth: 520 }}>
-            Browse hundreds of occupations. Learn what workers actually do<br />and how exposed each role is to AI, according to state-of-the-art research.
+          <p style={{ fontSize: 16, lineHeight: 1.7, color: C.textSec, margin: "0 0 32px", maxWidth: 640 }}>
+            Browse hundreds of occupations. Learn what workers actually do and how exposed each role is to AI, according to state-of-the-art research.
           </p>
           <div style={{ display: "flex", gap: 20, fontSize: 13, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.3px" }}>
             <span><strong style={{ color: C.text, fontWeight: 600 }}>{OCCUPATIONS.length}</strong> occupations</span>
