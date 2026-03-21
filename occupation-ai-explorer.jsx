@@ -997,7 +997,7 @@ export default function App() {
         {/* Controls */}
         <div className="controls-row" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", marginBottom: 20, animation: "fadeUp 0.4s cubic-bezier(.22,1,.36,1) 0.05s both" }}>
           <input placeholder="Search occupations…" value={search} onChange={e => { setSearch(e.target.value); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }}
-            style={{ padding: "8px 14px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, width: 240, outline: "none", fontFamily: F.sans, background: C.surface, transition: "border-color 0.15s" }}
+            style={{ padding: "8px 14px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, width: 180, outline: "none", fontFamily: F.sans, background: C.surface, transition: "border-color 0.15s" }}
             onFocus={e => { e.target.style.borderColor = C.text; }} onBlur={e => { e.target.style.borderColor = C.border; }}
           />
           <select value={category} onChange={e => { setCategory(e.target.value); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }}
@@ -1016,7 +1016,7 @@ export default function App() {
               padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
               fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
               fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
-            }}>Random occupation</button>
+            }}>Random job</button>
             <button onClick={() => { setView("quiz"); window.scrollTo({ top: 0 }); }} style={{
               padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
               fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
