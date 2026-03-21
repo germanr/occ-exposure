@@ -76,6 +76,10 @@ Exposure indices that are not on a 0--1 scale (Felten, Pizzinelli, Brynjolfsson 
 
 Adapted from the [ai-adaptation-educ](https://github.com/germanjreyes) research pipeline (Boyette, Chuan & Reyes).
 
+### Images
+
+The 1,137 occupation images in `public/images/` were downloaded from stock photo APIs (Pexels) and are not programmatically reproducible. They are committed to the repository as-is. Images use a three-tier fallback: occupation-specific → minor group → CSS gradient.
+
 ## Running locally
 
 ```bash
