@@ -846,7 +846,7 @@ export default function App() {
           borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100,
         }}>
           <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
+            <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & THE FUTURE OF WORK</span>
             <button onClick={() => { setView("grid"); }} style={{
               padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
               fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec,
@@ -879,7 +879,7 @@ export default function App() {
           <style>{GCSS}</style>
           <header style={{ background: `${C.bg}DD`, backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100 }}>
             <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
+              <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & THE FUTURE OF WORK</span>
               <button onClick={() => { setView("grid"); setCompareSocs([]); setCompareMode(false); }} style={{ padding: "5px 12px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 11, cursor: "pointer", background: C.surface, fontFamily: F.sans, fontWeight: 500, color: C.textSec }}>← Explorer</button>
             </div>
           </header>
@@ -959,7 +959,7 @@ export default function App() {
         borderBottom: `1px solid ${C.border}`, position: "sticky", top: 0, zIndex: 100,
       }}>
         <div style={{ maxWidth: 1120, margin: "0 auto", padding: "14px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & OCCUPATIONS</span>
+          <span style={{ fontSize: 13, fontWeight: 500, fontFamily: F.mono, letterSpacing: "0.5px", color: C.textSec }}>AI & THE FUTURE OF WORK</span>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => setShowExplainer(v => !v)} style={{
               padding: "5px 12px", border: `1px solid ${showExplainer ? C.text : C.border}`, borderRadius: 4,
