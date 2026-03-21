@@ -31,7 +31,7 @@ All three files are **raw source files** extracted from the O\*NET database zip.
 
 | File | Source | Download |
 |------|--------|----------|
-| `rawdata/bls/national_M2023_dl.xlsx` | BLS Occupational Employment and Wage Statistics, May 2023 | [bls.gov/oes/2023/may/oes\_dl.htm](https://www.bls.gov/oes/2023/may/oes_dl.htm) |
+| `rawdata/bls/national_M2024_dl.xlsx` | BLS Occupational Employment and Wage Statistics, May 2024 | [bls.gov/oes/2023/may/oes\_dl.htm](https://www.bls.gov/oes/2023/may/oes_dl.htm) |
 
 **Raw source file** from BLS. Public domain.
 

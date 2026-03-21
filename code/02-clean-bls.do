@@ -1,7 +1,7 @@
 /*******************************************************************************
 * OCCUPATION & AI IMPACT EXPLORER — Clean BLS OES
-* Purpose: Import employment and wage data from BLS May 2023
-* Input:   rawdata/bls/national_M2023_dl.xlsx
+* Purpose: Import employment and wage data from BLS May 2024
+* Input:   rawdata/bls/national_M2024_dl.xlsx
 * Output:  data/bls_employment.dta
 *******************************************************************************/
 
@@ -19,7 +19,7 @@ glo cod  "${root}/code"                                  ;
 * STEP 1: Import and filter to detailed occupations                            ;
 *==============================================================================;
 
-import excel "${raw}/bls/national_M2023_dl.xlsx",
+import excel "${raw}/bls/national_M2024_dl.xlsx",
     firstrow clear                                       ;
 
 keep if O_GROUP == "detailed"                            ;

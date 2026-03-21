@@ -59,6 +59,9 @@ body { background: ${C.bg}; -webkit-font-smoothing: antialiased; -moz-osx-font-s
   .controls-row input { width: 100% !important; }
   .footer-grid { grid-template-columns: 1fr !important; }
   .exposure-grid { grid-template-columns: 1fr !important; }
+  .quiz-cards { flex-direction: column !important; align-items: stretch !important; }
+  .quiz-cards > div { max-width: 100% !important; }
+  .quiz-tasks { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 480px) {
   .grid-main { grid-template-columns: 1fr !important; gap: 6px !important; }
@@ -363,6 +366,16 @@ function QuizView({ onBack }) {
     setPair(pickPair(occA));
   };
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === "ArrowLeft") { if (!picked) handlePick("a"); }
+      else if (e.key === "ArrowRight") { if (!picked) handlePick("b"); }
+      else if (e.key === "Enter" || e.key === " ") { if (picked) { e.preventDefault(); handleNext(); } }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
   const cardStyle = (side) => {
     const isPicked = picked === side;
     const isAnswer = side === answer;
@@ -402,7 +415,7 @@ function QuizView({ onBack }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 20, marginBottom: 32, animation: picked ? "none" : "fadeUp 0.35s cubic-bezier(.22,1,.36,1) both" }}>
+      <div className="quiz-cards" style={{ display: "flex", gap: 20, marginBottom: 32, animation: picked ? "none" : "fadeUp 0.35s cubic-bezier(.22,1,.36,1) both" }}>
         {["a", "b"].map(side => (
           <div key={side} style={cardStyle(side)} onClick={() => handlePick(side)}
             onMouseEnter={e => { if (!picked) e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = picked ? e.currentTarget.style.boxShadow : "0 6px 20px rgba(0,0,0,0.1)"; }}
@@ -431,6 +444,10 @@ function QuizView({ onBack }) {
         ))}
       </div>
 
+      <div style={{ textAlign: "center", marginBottom: 16, fontSize: 12, fontFamily: F.mono, color: C.textTer }}>
+        {picked ? "Press Enter for next pair" : "\u2190 \u2192 to pick \u00b7 Enter for next"}
+      </div>
+
       {picked && (() => {
         const winner = occ(answer);
         const loser = occ(answer === "a" ? "b" : "a");
@@ -454,13 +471,22 @@ function QuizView({ onBack }) {
         return (
           <div style={{ animation: "fadeUp 0.3s cubic-bezier(.22,1,.36,1) both", marginBottom: 48 }}>
             {/* Result banner */}
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
               <div style={{ fontSize: 22, fontWeight: 700, fontFamily: F.sans, marginBottom: 8, color: isCorrect ? "#276749" : "#C53030" }}>
                 {isCorrect ? "Correct!" : "Not quite!"}
               </div>
               <p style={{ fontSize: 14, color: C.textSec, maxWidth: 600, margin: "0 auto" }}>
                 <strong>{winner.title}</strong> ({fmtPct(winExp)}) is more exposed to AI than <strong>{loser.title}</strong> ({fmtPct(loseExp)}).
               </p>
+            </div>
+
+            {/* Next button — immediately after banner */}
+            <div style={{ textAlign: "center", marginBottom: 28 }}>
+              <button onClick={handleNext} style={{
+                padding: "10px 28px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 14,
+                fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg,
+                fontFamily: F.sans, letterSpacing: "0.3px",
+              }}>Next pair →</button>
             </div>
 
             {/* Exposure comparison table */}
@@ -486,7 +512,7 @@ function QuizView({ onBack }) {
             </div>
 
             {/* Side-by-side tasks */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+            <div className="quiz-tasks" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
               {[["a", occA, tasksA], ["b", occB, tasksB]].map(([side, o, t]) => (
                 <div key={side} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "20px 24px" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, fontFamily: F.sans, marginBottom: 4 }}>{o.title}</div>
@@ -502,16 +528,11 @@ function QuizView({ onBack }) {
               ))}
             </div>
 
-            {/* Insight + next button */}
+            {/* Insight */}
             <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: C.textSec, maxWidth: 600, margin: "0 auto 20px", lineHeight: 1.65 }}>
+              <p style={{ fontSize: 13, color: C.textSec, maxWidth: 600, margin: "0 auto", lineHeight: 1.65 }}>
                 Read through the task lists above. Jobs with more information processing, writing, analysis, and data work tend to have higher AI exposure, while jobs involving physical tasks, hands-on care, or unpredictable environments tend to have lower exposure.
               </p>
-              <button onClick={handleNext} style={{
-                padding: "10px 28px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 14,
-                fontWeight: 600, cursor: "pointer", background: C.text, color: C.bg,
-                fontFamily: F.sans, letterSpacing: "0.3px",
-              }}>Next pair →</button>
             </div>
           </div>
         );
@@ -521,13 +542,48 @@ function QuizView({ onBack }) {
 }
 
 // ─────────────────────────────────────
+// Major group labels for category filter
+// ─────────────────────────────────────
+const MAJOR_GROUPS = [
+  ["11", "Management"], ["13", "Business & Financial"], ["15", "Computer & Mathematical"],
+  ["17", "Architecture & Engineering"], ["19", "Life, Physical & Social Science"],
+  ["21", "Community & Social Service"], ["23", "Legal"], ["25", "Education"],
+  ["27", "Arts, Design & Media"], ["29", "Healthcare Practitioners"],
+  ["31", "Healthcare Support"], ["33", "Protective Service"], ["35", "Food Preparation"],
+  ["37", "Building & Grounds"], ["39", "Personal Care"], ["41", "Sales"],
+  ["43", "Office & Admin Support"], ["45", "Farming, Fishing & Forestry"],
+  ["47", "Construction"], ["49", "Installation & Repair"], ["51", "Production"],
+  ["53", "Transportation"], ["55", "Military"],
+];
+
+// ─────────────────────────────────────
+// Hash routing helpers
+// ─────────────────────────────────────
+function parseHash() {
+  const h = window.location.hash.replace("#", "").replace(/^\//, "");
+  if (h === "quiz") return { view: "quiz" };
+  if (/^\d{2}-\d{4}/.test(h)) {
+    const soc = h.includes(".") ? h : h + ".00";
+    return { view: "detail", soc };
+  }
+  return { view: "grid" };
+}
+
+function setHash(path) {
+  const next = "#/" + path;
+  if (window.location.hash !== next) window.location.hash = next;
+}
+
+// ─────────────────────────────────────
 // Main App
 // ─────────────────────────────────────
 export default function App() {
-  const [view, setView] = useState("grid");
-  const [selectedSoc, setSelectedSoc] = useState(null);
+  const initHash = useMemo(() => parseHash(), []);
+  const [view, setView] = useState(initHash.view);
+  const [selectedSoc, setSelectedSoc] = useState(initHash.soc || null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("employment");
+  const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [shuffleHl, setShuffleHl] = useState(null);
   const [fadeIn, setFadeIn] = useState(true);
@@ -537,6 +593,7 @@ export default function App() {
 
   const filtered = useMemo(() => {
     let list = [...OCCUPATIONS];
+    if (category !== "all") list = list.filter(o => o.soc.startsWith(category));
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(o => o.title.toLowerCase().includes(q) || o.soc.includes(q) || (o.altTitles && o.altTitles.some(a => a.toLowerCase().includes(q))));
@@ -549,11 +606,34 @@ export default function App() {
     }, "desc");
     if (sortBy === "wage") return _.orderBy(list, o => o.meanWage ?? 0, "desc");
     return _.orderBy(list, o => o.employment ?? 0, "desc");
-  }, [search, sortBy]);
+  }, [search, sortBy, category]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paged = filtered.slice((page - 1) * perPage, page * perPage);
-  useEffect(() => { setPage(1); }, [search, sortBy]);
+  useEffect(() => { setPage(1); }, [search, sortBy, category]);
+
+  // Hash routing: sync URL ↔ view state
+  useEffect(() => {
+    if (view === "detail" && selectedSoc) setHash(selectedSoc.replace(".00", ""));
+    else if (view === "quiz") setHash("quiz");
+    else if (view === "grid") setHash("");
+  }, [view, selectedSoc]);
+
+  useEffect(() => {
+    const onHash = () => {
+      const h = parseHash();
+      if (h.view === "detail" && h.soc) {
+        const occ = OCCUPATIONS.find(o => o.soc === h.soc);
+        if (occ) { setSelectedSoc(h.soc); setView("detail"); setFadeIn(true); }
+      } else if (h.view === "quiz") {
+        setView("quiz"); setFadeIn(true);
+      } else {
+        setView("grid"); setSelectedSoc(null); setFadeIn(true);
+      }
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
 
   const getTasks = useCallback((soc) => ALL_TASKS[soc] || null, []);
 
@@ -804,6 +884,11 @@ export default function App() {
             style={{ padding: "8px 14px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 13, width: 240, outline: "none", fontFamily: F.sans, background: C.surface, transition: "border-color 0.15s" }}
             onFocus={e => { e.target.style.borderColor = C.text; }} onBlur={e => { e.target.style.borderColor = C.border; }}
           />
+          <select value={category} onChange={e => { setCategory(e.target.value); if (view === "detail") { setView("grid"); setSelectedSoc(null); } }}
+            style={{ padding: "8px 10px", border: `1px solid ${C.border}`, borderRadius: 4, fontSize: 12, fontFamily: F.sans, background: C.surface, color: C.text, outline: "none", cursor: "pointer" }}>
+            <option value="all">All categories</option>
+            {MAJOR_GROUPS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+          </select>
           <div style={{ display: "flex", gap: 14, alignItems: "center", marginLeft: 8 }}>
             <span style={{ fontSize: 11, color: C.textTer, fontFamily: F.mono, letterSpacing: "0.5px", textTransform: "uppercase" }}>Sort</span>
             {[["employment", "Employment"], ["wage", "Wage"], ["alpha", "A–Z"], ["exposure", "Exposure"]].map(([k, l]) => (
@@ -923,7 +1008,7 @@ export default function App() {
             <div style={{ display: "grid", gap: 12, marginBottom: 20 }}>
               {[
                 { title: "O*NET Task Statements", desc: "Core task statements for each occupation from the O*NET database (U.S. Department of Labor / Employment and Training Administration). 13,417 tasks across 878 occupations.", link: "https://www.onetonline.org/", license: "CC BY 4.0" },
-                { title: "BLS Occupational Employment & Wage Statistics", desc: "Employment counts and annual mean wages from the Bureau of Labor Statistics, May 2023 National Occupational Employment and Wage Estimates.", link: "https://www.bls.gov/oes/", license: "Public domain" },
+                { title: "BLS Occupational Employment & Wage Statistics", desc: "Employment counts and annual mean wages from the Bureau of Labor Statistics, May 2024 National Occupational Employment and Wage Estimates.", link: "https://www.bls.gov/oes/", license: "Public domain" },
                 { title: "Eloundou et al. (2023) — \"GPTs are GPTs\"", desc: "Share of tasks exposed to AI at three capability tiers: LLM alone (alpha), with complementary tools (beta), and with full system access (gamma). Covers 923 occupations.", link: "https://doi.org/10.1126/science.adj0998" },
                 { title: "Anthropic Economic Index (2025)", desc: "Analysis of millions of real AI conversations measuring how often AI is used for each occupation's tasks, distinguishing augmentation (AI as helper) from automation (AI as replacement). Covers 674 occupations.", link: "https://www.anthropic.com/research/the-anthropic-economic-index" },
                 { title: "Felten, Raj & Seamans (2023) — AIOE", desc: "Measures how much recent AI capability advances overlap with the abilities each job requires, using AI benchmark scores mapped to occupational skills.", link: "https://doi.org/10.2139/ssrn.4375268" },
@@ -960,7 +1045,7 @@ export default function App() {
           fontSize: 13, lineHeight: 1.7, color: C.textSec,
         }}>
           <p style={{ margin: "0 0 8px", maxWidth: 680 }}>
-            Task statements from <a href="https://www.onetonline.org/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>O*NET</a>. Employment and wage data from <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>BLS</a> (May 2023). AI exposure indices from six research teams — click <button onClick={() => { setShowExplainer(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", color: C.text, fontWeight: 600, cursor: "pointer", padding: 0, fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline" }}>Exposure to AI</button> above for details.
+            Task statements from <a href="https://www.onetonline.org/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>O*NET</a>. Employment and wage data from <a href="https://www.bls.gov/oes/" target="_blank" rel="noopener noreferrer" style={{ color: C.text }}>BLS</a> (May 2024). AI exposure indices from six research teams — click <button onClick={() => { setShowExplainer(true); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", color: C.text, fontWeight: 600, cursor: "pointer", padding: 0, fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline" }}>Exposure to AI</button> above for details.
           </p>
           <p style={{ fontSize: 11, color: C.textTer, margin: 0, fontFamily: F.mono }}>
             O*NET: CC BY 4.0, U.S. Dept of Labor/ETA · BLS: public domain · All exposure values normalized to 0–100% · <button onClick={() => { setShowAbout(true); window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }); }} style={{ background: "none", border: "none", color: C.textTer, cursor: "pointer", padding: 0, fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline" }}>About</button>

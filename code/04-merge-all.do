@@ -110,7 +110,7 @@ replace task_count = 0 if missing(task_count)             ;
 label var soc              "O*NET-SOC Code"              ;
 label var occ_title        "Occupation title"             ;
 label var alt_titles       "Alternate titles (pipe-delim)";
-label var employment       "BLS total employment (2023)"  ;
+label var employment       "BLS total employment (2024)"  ;
 label var mean_wage        "BLS annual mean wage"         ;
 label var employment_share "Share of total U.S. employment";
 label var task_count       "Number of O*NET core tasks"   ;
