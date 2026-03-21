@@ -1080,6 +1080,20 @@ export default function App() {
                 </a>
               ))}
             </div>
+
+            <div style={{ fontSize: 11, fontWeight: 500, color: C.textTer, marginBottom: 12, marginTop: 28, letterSpacing: "0.5px", fontFamily: F.mono, textTransform: "uppercase" }}>Does exposure translate into employment effects?</div>
+            <p style={{ fontSize: 14, lineHeight: 1.7, color: C.textSec, margin: "0 0 12px", maxWidth: 700 }}>
+              Exposure does not automatically mean displacement. But early evidence suggests it matters. Using payroll data from millions of U.S. workers, <a href="https://digitaleconomy.stanford.edu/publications/canaries-in-the-coal-mine/" target="_blank" rel="noopener noreferrer" style={{ color: C.text, fontWeight: 500 }}>Brynjolfsson, Chandar & Chen (2025)</a> find that occupations more exposed to AI have seen declining employment among early-career workers (ages 22-25) since the release of ChatGPT, while employment for older workers in the same occupations has remained stable or grown.
+            </p>
+            <div style={{ margin: "16px 0", textAlign: "center" }}>
+              <img src={`${import.meta.env.BASE_URL}images/canaries-figure2-panel.png`} alt="Employment trends by AI exposure quintile for workers aged 22-25, from Brynjolfsson, Chandar & Chen (2025)" style={{ maxWidth: 420, width: "100%", borderRadius: 6, border: `1px solid ${C.borderLight}` }} />
+              <div style={{ fontSize: 11, color: C.textTer, marginTop: 8, lineHeight: 1.5, maxWidth: 500, margin: "8px auto 0" }}>
+                Employment indexed to October 2022. Darker lines = more AI-exposed occupations. After ChatGPT's release, employment for young workers diverges sharply by exposure level. Source: Brynjolfsson, Chandar & Chen (2025), Figure 2.
+              </div>
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.7, color: C.textTer, margin: "12px 0 0", maxWidth: 700, fontStyle: "italic" }}>
+              The labor market effects of AI are an active area of research. Employment declines appear concentrated in occupations where AI automates work, with muted effects for those where AI augments it. The long-run implications remain an open question.
+            </p>
           </div>
         )}
 
