@@ -1008,21 +1008,23 @@ export default function App() {
             ))}
           </div>
           <div style={{ flex: 1 }} />
-          <button onClick={handleRandom} style={{
-            padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
-            fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
-            fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
-          }}>Random occupation</button>
-          <button onClick={() => { setView("quiz"); window.scrollTo({ top: 0 }); }} style={{
-            padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
-            fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
-            fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
-          }}>Quiz me</button>
-          <button onClick={() => { setCompareMode(m => !m); setCompareSocs([]); }} style={{
-            padding: "7px 16px", border: `1px solid ${compareMode ? "#276749" : C.border}`, borderRadius: 4, fontSize: 12,
-            fontWeight: 500, cursor: "pointer", background: compareMode ? "#27674915" : C.surface, color: compareMode ? "#276749" : C.text,
-            fontFamily: F.sans, transition: "all 0.15s", letterSpacing: "0.3px",
-          }}>{compareMode ? "Cancel compare" : "Compare"}</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={handleRandom} style={{
+              padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
+              fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
+              fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
+            }}>Random occupation</button>
+            <button onClick={() => { setView("quiz"); window.scrollTo({ top: 0 }); }} style={{
+              padding: "7px 16px", border: `1px solid ${C.text}`, borderRadius: 4, fontSize: 12,
+              fontWeight: 500, cursor: "pointer", background: C.text, color: C.bg,
+              fontFamily: F.sans, transition: "opacity 0.12s", letterSpacing: "0.3px",
+            }}>Quiz me</button>
+            <button onClick={() => { setCompareMode(m => !m); setCompareSocs([]); }} style={{
+              padding: "7px 16px", border: `1px solid ${compareMode ? "#276749" : C.border}`, borderRadius: 4, fontSize: 12,
+              fontWeight: 500, cursor: "pointer", background: compareMode ? "#27674915" : C.surface, color: compareMode ? "#276749" : C.text,
+              fontFamily: F.sans, transition: "all 0.15s", letterSpacing: "0.3px",
+            }}>{compareMode ? "Cancel" : "Compare"}</button>
+          </div>
         </div>
 
         {/* Compare mode selection bar */}
