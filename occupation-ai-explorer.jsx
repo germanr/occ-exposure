@@ -24,6 +24,11 @@ const fmt = (n) => {
 const fmtFull = (n) => (n != null ? n.toLocaleString() : "—");
 const fmtPct = (n) => (n != null ? (n * 100).toFixed(0) + "%" : "—");
 const fmtWage = (n) => (n != null ? "$" + n.toLocaleString() : "—");
+const fmtGrowth = (n) => {
+  if (n == null) return "—";
+  const sign = n > 0 ? "+" : "";
+  return `${sign}${n.toFixed(1)}%`;
+};
 
 // ─── Palette ───
 const C = {
@@ -682,13 +687,13 @@ export default function App() {
   }, [openOcc]);
 
   const exportCSV = useCallback(() => {
-    const rows = ["SOC Code,Occupation Title,Task Index,Task,Employment,Mean Wage,Eloundou Alpha,Eloundou Beta,Eloundou Gamma,AEI Automation,AEI Augmentation,Felten AIOE,Pizzinelli CAIOE,GENOE,Brynjolfsson SML"];
+    const rows = ["SOC Code,Occupation Title,Task Index,Task,Employment,Mean Wage,Projected Growth 2024-34 (%),Annual Openings 2024-34,Entry Education,On-the-Job Training,Eloundou Alpha,Eloundou Beta,Eloundou Gamma,AEI Automation,AEI Augmentation,Felten AIOE,Pizzinelli CAIOE,GENOE,Brynjolfsson SML"];
     for (const occ of OCCUPATIONS) {
       const tasks = getTasks(occ.soc);
       if (!tasks) continue;
       const ex = occ.exposure || {};
       tasks.forEach((t, i) => {
-        rows.push(`${occ.soc},"${occ.title}",${i + 1},"${t.replace(/"/g, '""')}",${occ.employment ?? ""},${occ.meanWage ?? ""},${ex.eloundou_alpha ?? ""},${ex.eloundou_beta ?? ""},${ex.eloundou_gamma ?? ""},${ex.aei_automation ?? ""},${ex.aei_augmentation ?? ""},${ex.felten ?? ""},${ex.pizzinelli ?? ""},${ex.genoe ?? ""},${ex.sml ?? ""}`);
+        rows.push(`${occ.soc},"${occ.title}",${i + 1},"${t.replace(/"/g, '""')}",${occ.employment ?? ""},${occ.meanWage ?? ""},${occ.projGrowthPct ?? ""},${occ.annualOpenings ?? ""},"${occ.entryEducation ?? ""}","${occ.ojt ?? ""}",${ex.eloundou_alpha ?? ""},${ex.eloundou_beta ?? ""},${ex.eloundou_gamma ?? ""},${ex.aei_automation ?? ""},${ex.aei_augmentation ?? ""},${ex.felten ?? ""},${ex.pizzinelli ?? ""},${ex.genoe ?? ""},${ex.sml ?? ""}`);
       });
     }
     const blob = new Blob([rows.join("\n")], { type: "text/csv" });
@@ -766,14 +771,22 @@ export default function App() {
 
             <div className="hero-stats" style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
               {[
-                ["EMPLOYMENT", fmtFull(selOcc.employment)],
-                ["MEAN WAGE", fmtWage(selOcc.meanWage)],
-                ["SHARE OF WORKFORCE", selOcc.employmentShare ? selOcc.employmentShare.toFixed(2) + "%" : "—"],
-                ["TASKS", String(tT)],
-              ].map(([k, v]) => (
+                ["EMPLOYMENT", fmtFull(selOcc.employment), null, null, null],
+                ["MEAN WAGE", fmtWage(selOcc.meanWage), null, null, null],
+                ["SHARE OF WORKFORCE", selOcc.employmentShare ? selOcc.employmentShare.toFixed(2) + "%" : "—", null, null, null],
+                ...(selOcc.projGrowthPct != null
+                  ? [["PROJ. GROWTH, 2024–34", fmtGrowth(selOcc.projGrowthPct), selOcc.projGrowthPct < 0 ? C.auto : (selOcc.projGrowthPct > 0 ? C.aug : null), null, "BLS"]]
+                  : []),
+                ...(selOcc.entryEducation
+                  ? [["TYPICAL ENTRY EDUCATION", selOcc.entryEducation, null, "small", "BLS"]]
+                  : []),
+                ["TASKS", String(tT), null, null, null],
+              ].map(([k, v, color, size, src]) => (
                 <div key={k}>
-                  <div style={{ fontSize: 10, color: C.textTer, fontWeight: 500, marginBottom: 4, letterSpacing: "1px", fontFamily: F.mono }}>{k}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, fontFamily: F.sans, color: C.text, letterSpacing: "-0.02em" }}>{v}</div>
+                  <div style={{ fontSize: 10, color: C.textTer, fontWeight: 500, marginBottom: 4, letterSpacing: "1px", fontFamily: F.mono }}>
+                    {k}{src ? <span style={{ marginLeft: 6, color: C.textTer, opacity: 0.65 }}>·{src}</span> : null}
+                  </div>
+                  <div style={{ fontSize: size === "small" ? 14 : 22, fontWeight: size === "small" ? 600 : 700, fontFamily: F.sans, color: color || C.text, letterSpacing: "-0.02em", lineHeight: size === "small" ? 1.4 : 1.1, maxWidth: size === "small" ? 220 : undefined }}>{v}</div>
                 </div>
               ))}
             </div>

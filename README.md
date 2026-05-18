@@ -9,6 +9,7 @@ An interactive tool for exploring how AI intersects with over 1,000 U.S. occupat
 - **Browse 1,016 occupations** with images, employment counts, and wages
 - **15,000+ task statements** from O\*NET describing what each job actually involves
 - **8 AI exposure indices** from six independent research teams, normalized to a common 0--100% scale
+- **BLS Employment Projections** (2024--34): projected growth rate and typical entry education for 963 occupations, lets you juxtapose AI exposure against the government's independent labor-market forecast
 - **Search by job title or alias** (e.g., "doctor" finds Physicians, "CEO" finds Chief Executives)
 - **Sort** by employment, wage, alphabetical order, or AI exposure
 - **Quiz mode**: guess which of two occupations is more exposed to AI, then see the tasks and scores side by side
@@ -34,6 +35,14 @@ All three files are **raw source files** extracted from the O\*NET database zip.
 | `rawdata/bls/national_M2024_dl.xlsx` | BLS Occupational Employment and Wage Statistics, May 2024 | [bls.gov/oes/2023/may/oes\_dl.htm](https://www.bls.gov/oes/2023/may/oes_dl.htm) |
 
 **Raw source file** from BLS. Public domain.
+
+### BLS employment projections
+
+| File | Source | Download |
+|------|--------|----------|
+| `rawdata/bls_ep/occupation.xlsx` | BLS Employment Projections, 2024--34 (all occupational tables, including Table 1.2 "Occupational projections and worker characteristics") | [bls.gov/emp/ind-occ-matrix/occupation.xlsx](https://www.bls.gov/emp/ind-occ-matrix/occupation.xlsx) (landing page: [bls.gov/emp/data/occupational-data.htm](https://www.bls.gov/emp/data/occupational-data.htm)) |
+
+**Raw source file** from BLS. Public domain. Only Table 1.2 is consumed by the pipeline; it contributes projected employment change (2024--34), projected annual openings, typical entry education, and typical on-the-job training at the 6-digit SOC level.
 
 ### Exposure indices
 
@@ -64,12 +73,14 @@ code/
 ├── 00-master.do                 ← runs everything
 ├── process-aei.py               ← HuggingFace raw → occupation-level CSV
 ├── 01-clean-onet.do             ← tasks, occupations, alt titles
-├── 02-clean-bls.do              ← employment and wages
+├── 02-clean-bls.do              ← OES employment and wages
+├── 02b-clean-bls-ep.do          ← EP projections (Table 1.2)
 ├── 03-clean-exposure.do         ← all 6 indices, normalized to 0-1
 ├── 04-merge-all.do              ← merge into occupations_merged.dta
 └── 05-export-json.py            ← .dta → JSON for the website
 data/                            ← intermediate .dta files (git-ignored)
-src/                             ← JSON consumed by the React app
+src/                             ← occupations.json + summaries.json (bundled)
+public/data/                     ← tasks.json (fetched at runtime)
 ```
 
 Exposure indices that are not on a 0--1 scale (Felten, Pizzinelli, Brynjolfsson SML) are min-max normalized in `03-clean-exposure.do`. Pizzinelli uses SOC 2010 codes and is crosswalked to SOC 2018 before merging.

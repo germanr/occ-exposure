@@ -18,8 +18,10 @@ import pandas as pd
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 SRC  = os.path.join(ROOT, "src")
+PUB  = os.path.join(ROOT, "public", "data")
 
 os.makedirs(SRC, exist_ok=True)
+os.makedirs(PUB, exist_ok=True)
 
 
 # ── 1. Load merged occupation data ──────────────────────────────────────────
@@ -39,6 +41,16 @@ for _, r in df.iterrows():
         "taskCount": int(r["task_count"]),
         "exposure": {},
     }
+
+    # BLS Employment Projections (2024-34)
+    if pd.notna(r.get("emp_change_pct")):
+        occ["projGrowthPct"] = round(float(r["emp_change_pct"]), 1)
+    if pd.notna(r.get("annual_openings")):
+        occ["annualOpenings"] = round(float(r["annual_openings"]) * 1000)
+    if pd.notna(r.get("entry_education")) and str(r["entry_education"]).strip():
+        occ["entryEducation"] = str(r["entry_education"]).strip()
+    if pd.notna(r.get("ojt")) and str(r["ojt"]).strip():
+        occ["ojt"] = str(r["ojt"]).strip()
 
     # Add alt titles if present
     if pd.notna(r.get("alt_titles")) and r["alt_titles"].strip():
@@ -94,8 +106,10 @@ for soc in soc_set:
         if sub_tasks:
             tasks[soc] = sub_tasks
 
-with open(os.path.join(SRC, "tasks.json"), "w", encoding="utf-8") as f:
-    json.dump(tasks, f, separators=(",", ":"))
+# tasks.json is fetched at runtime from public/data/, not bundled
+for out_dir in (SRC, PUB):
+    with open(os.path.join(out_dir, "tasks.json"), "w", encoding="utf-8") as f:
+        json.dump(tasks, f, separators=(",", ":"))
 
 total_tasks = sum(len(v) for v in tasks.values())
 print(f"  -> tasks.json: {total_tasks} tasks across {len(tasks)} occupations")

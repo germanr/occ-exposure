@@ -28,6 +28,7 @@ shell python -c "import openpyxl,csv; wb=openpyxl.load_workbook('${raw}/exposure
 
 do "${cod}/01-clean-onet.do"                             ;
 do "${cod}/02-clean-bls.do"                              ;
+do "${cod}/02b-clean-bls-ep.do"                          ;
 do "${cod}/03-clean-exposure.do"                         ;
 do "${cod}/04-merge-all.do"                              ;
 

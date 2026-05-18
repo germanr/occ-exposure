@@ -58,12 +58,14 @@ tab _merge; drop if _merge == 2; drop _merge             ;
 merge 1:1 soc using "${dat}/exposure_aei.dta"            ;
 tab _merge; drop if _merge == 2; drop _merge             ;
 
-* Felten, GENOE, Pizzinelli, SML: 6-digit key             ;
+* Felten, GENOE, Pizzinelli, SML, EP: 6-digit key         ;
 * For O*NET sub-codes (e.g., 15-1252.01), try parent .00  ;
 cap drop soc_6dig                                        ;
 gen soc_6dig = substr(soc, 1, 7) + ".00"                 ;
 
-foreach f in "felten" "genoe" "pizzinelli" "sml" {;
+local sources "felten genoe pizzinelli sml"              ;
+
+foreach f of local sources {;
 
     di in red "Merging `f'"                              ;
 
@@ -84,6 +86,27 @@ foreach f in "felten" "genoe" "pizzinelli" "sml" {;
 
     drop _m1 _m2                                         ;
 };
+
+* BLS EP (Table 1.2): same 6-digit parent-fallback pattern ;
+di in red "Merging BLS EP"                               ;
+local ep_vars "emp_2024 emp_2034 emp_change_num emp_change_pct annual_openings entry_education ojt" ;
+
+merge m:1 soc using "${dat}/bls_ep.dta",
+    keepusing(`ep_vars') gen(_m1)                        ;
+drop if _m1 == 2                                         ;
+
+preserve                                                 ;
+    use "${dat}/bls_ep.dta", clear                       ;
+    keep soc `ep_vars'                                   ;
+    rename soc soc_6dig                                  ;
+    tempfile ep_parent                                   ;
+    save `ep_parent', replace                            ;
+restore                                                  ;
+
+merge m:1 soc_6dig using `ep_parent',
+    keepusing(`ep_vars') update gen(_m2)                 ;
+drop if _m2 == 2                                         ;
+drop _m1 _m2                                             ;
 
 drop soc_6dig                                            ;
 
@@ -127,10 +150,18 @@ label var felten           "Felten: LM-AIOE (0-1)"        ;
 label var genoe            "GENOE: 5-year horizon"        ;
 label var pizzinelli       "Pizzinelli: C-AIOE (0-1)"     ;
 label var sml              "Brynjolfsson: SML (0-1)"      ;
+label var emp_2024         "BLS EP: employment, 2024 (000s)" ;
+label var emp_2034         "BLS EP: projected employment, 2034 (000s)" ;
+label var emp_change_num   "BLS EP: projected change, 2024-34 (000s)"  ;
+label var emp_change_pct   "BLS EP: projected change, 2024-34 (%)" ;
+label var annual_openings  "BLS EP: annual avg openings, 2024-34 (000s)" ;
+label var entry_education  "BLS EP: typical entry education" ;
+label var ojt              "BLS EP: typical on-the-job training" ;
 
 order soc occ_title employment mean_wage employment_share
-    task_count eloundou_* aei_* felten genoe pizzinelli
-    sml alt_titles                                       ;
+    task_count emp_change_pct emp_2024 emp_2034 emp_change_num
+    annual_openings entry_education ojt
+    eloundou_* aei_* felten genoe pizzinelli sml alt_titles ;
 
 sort soc                                                 ;
 compress                                                 ;
